@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+@theme {
+  /* Use a rich color palette - indigo/violet as primary accent */
+  --color-primary-50: #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-200: #c7d2fe;
+  --color-primary-300: #a5b4fc;
+  --color-primary-400: #818cf8;
+  --color-primary-500: #6366f1;
+  --color-primary-600: #4f46e5;
+  --color-primary-700: #4338ca;
+  --color-primary-800: #3730a3;
+  --color-primary-900: #312e81;
+  --color-primary-950: #1e1b4b;
+  
+  --color-surface-light: #ffffff;
+  --color-surface-dark: #1a1a2e;
+  --color-bg-light: #f8fafc;
+  --color-bg-dark: #0f0f23;
+  --color-card-light: #ffffff;
+  --color-card-dark: #16213e;
+  --color-card-hover-light: #f1f5f9;
+  --color-card-hover-dark: #1a2744;
+  --color-border-light: #e2e8f0;
+  --color-border-dark: #1e3a5f;
+  --color-text-primary-light: #0f172a;
+  --color-text-primary-dark: #f1f5f9;
+  --color-text-secondary-light: #475569;
+  --color-text-secondary-dark: #94a3b8;
+  --color-text-muted-light: #94a3b8;
+  --color-text-muted-dark: #64748b;
+  
+  /* Status colors */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #3b82f6;
+  
+  /* Glassmorphism */
+  --color-glass-light: rgba(255, 255, 255, 0.7);
+  --color-glass-dark: rgba(22, 33, 62, 0.7);
+}
+
+@layer base {
+  * {
+    @apply border-border-light;
+  }
+  
+  .dark * {
+    @apply border-border-dark;
+  }
+  
+  body {
+    @apply bg-bg-light text-text-primary-light antialiased transition-colors duration-300;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  }
+  
+  .dark body {
+    @apply bg-bg-dark text-text-primary-dark;
+  }
+}
+
+/* Hide scrollbar */
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Selection color */
+::selection {
+  @apply bg-primary-200 text-primary-900;
+}
+
+.dark ::selection {
+  @apply bg-primary-800 text-primary-100;
+}
+
+/* Glass effect utility */
+.glass {
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+}
+
+/* Animated gradient background */
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+/* Pulse glow for current lesson */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(99, 102, 241, 0.6); }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
