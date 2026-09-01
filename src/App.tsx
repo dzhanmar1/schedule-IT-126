@@ -27,7 +27,7 @@ export default function App() {
     ? DAYS_ORDER[daysOrderIndex]
     : DAYS_ORDER[0]; // Default to Monday on weekends
 
-  const [selectedDay, setSelectedDay] = useState(defaultDay);
+  const [selectedDay, setSelectedDay] = useState<string>(defaultDay);
 
   const activeDaySchedule = scheduleData.schedule.find(
     (s) => s.day === selectedDay
@@ -37,7 +37,7 @@ export default function App() {
 
   // Floating Current Lesson logic
   let floatingLesson = null;
-  let floatingMinutesLeft = null;
+  let floatingMinutesLeft: number | null = null;
   
   if (daysOrderIndex !== undefined) {
     const todaySchedule = scheduleData.schedule.find(s => s.day === DAYS_ORDER[daysOrderIndex]);
@@ -46,7 +46,7 @@ export default function App() {
         const status = getClassStatus(lesson.time, currentTime);
         if (status.status === 'current') {
           floatingLesson = lesson;
-          floatingMinutesLeft = status.minutesLeft;
+          floatingMinutesLeft = status.minutesLeft ?? null;
           break;
         }
       }

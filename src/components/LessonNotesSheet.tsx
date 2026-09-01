@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle2, Circle, Plus, Trash2, StickyNote, CheckSquare } from 'lucide-react';
 import type { ClassInfo } from '../data/schedule';

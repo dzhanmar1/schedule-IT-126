@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { PartyPopper, CalendarClock } from 'lucide-react';
 import type { ClassInfo, DaySchedule as DayScheduleType } from '../data/schedule';
 import { LessonCard } from './LessonCard';

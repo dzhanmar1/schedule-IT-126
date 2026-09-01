@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, User, CheckCircle2 } from 'lucide-react';
+import { MapPin, CheckCircle2 } from 'lucide-react';
 import type { ClassInfo } from '../data/schedule';
 import { getClassStatus } from '../utils/time';
 import { cn } from '../utils/cn';

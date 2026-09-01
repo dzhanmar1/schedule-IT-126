@@ -3,7 +3,7 @@ import { parseClassTime } from '../utils/time';
 import { differenceInMinutes } from 'date-fns';
 import { motion } from 'framer-motion';
 import { useLanguage } from '../i18n';
-import { cn } from '../utils/cn';
+
 
 interface FreeTimeBlockProps {
   prevLessonTime: string;
