@@ -1,8 +1,16 @@
 export type ClassInfo = {
+  id?: string;
   time: string;
   subject: string;
   teacher: string;
   auditorium: string;
+  type?: string;
+  
+  // Exception fields
+  isCancelled?: boolean;
+  originalTime?: string;
+  originalAuditorium?: string;
+  originalTeacher?: string;
 };
 
 export type DaySchedule = {

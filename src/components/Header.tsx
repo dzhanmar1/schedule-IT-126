@@ -3,11 +3,11 @@ import { motion } from 'framer-motion';
 import { Settings, Bell, BellOff, Share2 } from 'lucide-react';
 import { useLanguage, DAY_KEYS_ORDERED } from '../i18n';
 import { useNotifications } from '../hooks/useNotifications';
+import { useAuth } from '../contexts/AuthContext';
 import { cn } from '../utils/cn';
 
 interface HeaderProps {
   onSettingsOpen: () => void;
-  group: string;
 }
 
 function getGreetingKey(): string {
@@ -18,8 +18,9 @@ function getGreetingKey(): string {
   return 'ui.goodNight';
 }
 
-export function Header({ onSettingsOpen, group }: HeaderProps) {
+export function Header({ onSettingsOpen }: HeaderProps) {
   const { t } = useLanguage();
+  const { profile } = useAuth();
   const { permission, requestPermission } = useNotifications();
   const [scrolled, setScrolled] = useState(false);
   const [greetingKey, setGreetingKey] = useState(getGreetingKey);
@@ -48,7 +49,7 @@ export function Header({ onSettingsOpen, group }: HeaderProps) {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `${t('ui.scheduleTitle')} ${group}`,
+          title: `${t('ui.scheduleTitle')} ${profile?.groups?.name || ''}`,
           text: t('ui.shareText'),
           url: window.location.href,
         });
@@ -89,7 +90,7 @@ export function Header({ onSettingsOpen, group }: HeaderProps) {
             <span>{today.getDate()} {monthName}, {dayName}</span>
             <span className="w-1 h-1 rounded-full bg-text-muted-light dark:bg-text-muted-dark" />
             <span className="font-semibold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30 px-2 py-0.5 rounded-lg text-xs">
-              {group}
+              {profile?.groups?.name || '...'}
             </span>
           </motion.div>
         </div>
