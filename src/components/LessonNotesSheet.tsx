@@ -4,16 +4,21 @@ import { X, CheckCircle2, Circle, Plus, Trash2, StickyNote, CheckSquare } from '
 import type { ClassInfo } from '../data/schedule';
 import { useLanguage } from '../i18n';
 import { useNotes } from '../hooks/useNotes';
+import { useAuth } from '../contexts/AuthContext';
 import { cn } from '../utils/cn';
 
 interface LessonNotesSheetProps {
   lesson: ClassInfo | null;
   isOpen: boolean;
   onClose: () => void;
+  onEditException?: () => void;
 }
 
-export function LessonNotesSheet({ lesson, isOpen, onClose }: LessonNotesSheetProps) {
+export function LessonNotesSheet({ lesson, isOpen, onClose, onEditException }: LessonNotesSheetProps) {
   const { t } = useLanguage();
+  const { profile } = useAuth();
+  const isReadOnly = profile?.role === 'student';
+  
   const cleanSubject = lesson?.subject.replace(/\s*\/\s*(лек|пр|лаб)\s*/i, '').trim() || '';
   const { data, setData } = useNotes(cleanSubject);
   const [newTask, setNewTask] = useState('');
@@ -83,13 +88,24 @@ export function LessonNotesSheet({ lesson, isOpen, onClose }: LessonNotesSheetPr
                   {lesson.teacher}
                 </p>
               </div>
-              <motion.button
-                whileTap={{ scale: 0.9 }}
-                onClick={onClose}
-                className="rounded-full p-2.5 bg-bg-light dark:bg-bg-dark text-text-secondary-light dark:text-text-secondary-dark transition-colors hover:bg-card-hover-light shrink-0"
-              >
-                <X className="h-5 w-5" />
-              </motion.button>
+              <div className="flex gap-2 shrink-0">
+                {!isReadOnly && onEditException && (
+                  <motion.button
+                    whileTap={{ scale: 0.9 }}
+                    onClick={onEditException}
+                    className="flex items-center gap-2 rounded-full px-4 py-2.5 bg-primary-100 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400 font-bold text-sm transition-colors hover:bg-primary-200 dark:hover:bg-primary-900/50"
+                  >
+                    Изменить
+                  </motion.button>
+                )}
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
+                  onClick={onClose}
+                  className="rounded-full p-2.5 bg-bg-light dark:bg-bg-dark text-text-secondary-light dark:text-text-secondary-dark transition-colors hover:bg-card-hover-light shrink-0"
+                >
+                  <X className="h-5 w-5" />
+                </motion.button>
+              </div>
             </div>
 
             {/* Scrollable Content */}
@@ -112,32 +128,39 @@ export function LessonNotesSheet({ lesson, isOpen, onClose }: LessonNotesSheetPr
                         exit={{ opacity: 0, height: 0 }}
                         className="flex items-center gap-3 bg-bg-light dark:bg-bg-dark p-3 rounded-xl border border-border-light dark:border-border-dark overflow-hidden group"
                       >
-                        <button onClick={() => toggleTask(task.id)} className="shrink-0 text-primary-500">
+                        <button 
+                          onClick={() => !isReadOnly && toggleTask(task.id)} 
+                          className={cn("shrink-0", isReadOnly ? "text-primary-500/50 cursor-default" : "text-primary-500")}
+                        >
                           {task.done ? <CheckCircle2 size={20} /> : <Circle size={20} className="text-text-muted-light dark:text-text-muted-dark" />}
                         </button>
                         <span className={cn('flex-1 text-sm font-medium transition-all', task.done ? 'text-text-muted-light dark:text-text-muted-dark line-through' : 'text-text-primary-light dark:text-text-primary-dark')}>
                           {task.text}
                         </span>
-                        <button onClick={() => removeTask(task.id)} className="shrink-0 text-text-muted-light hover:text-danger opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Trash2 size={16} />
-                        </button>
+                        {!isReadOnly && (
+                          <button onClick={() => removeTask(task.id)} className="shrink-0 text-text-muted-light hover:text-danger opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Trash2 size={16} />
+                          </button>
+                        )}
                       </motion.div>
                     ))}
                   </AnimatePresence>
                 </div>
 
-                <form onSubmit={handleAddTask} className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newTask}
-                    onChange={(e) => setNewTask(e.target.value)}
-                    placeholder={t('ui.addTask')}
-                    className="flex-1 bg-bg-light dark:bg-bg-dark border border-border-light dark:border-border-dark rounded-xl px-4 py-2.5 text-sm font-medium text-text-primary-light dark:text-text-primary-dark outline-none focus:border-primary-500 transition-colors"
-                  />
-                  <button type="submit" disabled={!newTask.trim()} className="bg-primary-500 text-white p-2.5 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed shrink-0">
-                    <Plus size={20} />
-                  </button>
-                </form>
+                {!isReadOnly && (
+                  <form onSubmit={handleAddTask} className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newTask}
+                      onChange={(e) => setNewTask(e.target.value)}
+                      placeholder={t('ui.addTask')}
+                      className="flex-1 bg-bg-light dark:bg-bg-dark border border-border-light dark:border-border-dark rounded-xl px-4 py-2.5 text-sm font-medium text-text-primary-light dark:text-text-primary-dark outline-none focus:border-primary-500 transition-colors"
+                    />
+                    <button type="submit" disabled={!newTask.trim()} className="bg-primary-500 text-white p-2.5 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed shrink-0">
+                      <Plus size={20} />
+                    </button>
+                  </form>
+                )}
               </div>
 
               {/* Notes Section */}
@@ -148,8 +171,9 @@ export function LessonNotesSheet({ lesson, isOpen, onClose }: LessonNotesSheetPr
                 </div>
                 <textarea
                   value={data.notes}
+                  readOnly={isReadOnly}
                   onChange={(e) => setData({ ...data, notes: e.target.value })}
-                  placeholder={t('ui.typeNotes')}
+                  placeholder={isReadOnly ? "Нет заметок" : t('ui.typeNotes')}
                   className="flex-1 w-full bg-bg-light dark:bg-bg-dark border border-border-light dark:border-border-dark rounded-xl p-4 text-sm font-medium text-text-primary-light dark:text-text-primary-dark outline-none focus:border-primary-500 transition-colors resize-none leading-relaxed"
                 />
               </div>

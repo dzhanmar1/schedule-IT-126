@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Globe, Palette, Sun, Moon, Monitor, Bell, Info } from 'lucide-react';
 import { useLanguage, LANGUAGES } from '../i18n';
@@ -6,6 +7,10 @@ import { useNotifications } from '../hooks/useNotifications';
 import { ToggleSwitch } from './ToggleSwitch';
 import { cn } from '../utils/cn';
 import { scheduleData } from '../data/schedule';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { UserPlus } from 'lucide-react';
+import { InviteModal } from './InviteModal';
 
 interface SettingsSheetProps {
   isOpen: boolean;
@@ -22,6 +27,9 @@ export function SettingsSheet({ isOpen, onClose }: SettingsSheetProps) {
   const { language, setLanguage, t } = useLanguage();
   const { theme, setTheme } = useTheme();
   const { permission, requestPermission } = useNotifications();
+  const { profile } = useAuth();
+  const navigate = useNavigate();
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
   const notificationsEnabled = permission === 'granted';
 
@@ -157,6 +165,71 @@ export function SettingsSheet({ isOpen, onClose }: SettingsSheetProps) {
                   </div>
                 </section>
 
+                {/* Invite Section */}
+                {profile?.group_id && (
+                  <section className="space-y-4 pt-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-green-500">
+                        <UserPlus className="h-3.5 w-3.5" />
+                        <span>Приглашения / INVITE</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setIsInviteModalOpen(true)}
+                      className="w-full flex items-center justify-between bg-green-500/10 text-green-500 dark:text-green-400 rounded-[16px] p-4 border border-green-500/20 active:scale-[0.98] transition-all"
+                    >
+                      <div className="text-left">
+                        <p className="font-bold text-sm">Пригласить одногруппников</p>
+                        <p className="text-xs opacity-80 mt-0.5">Поделиться ссылкой или QR-кодом</p>
+                      </div>
+                      <UserPlus className="h-5 w-5" />
+                    </button>
+                  </section>
+                )}
+
+
+                {/* Admin Section */}
+                {(profile?.role === 'starosta' || profile?.role === 'admin') && (
+                  <section className="space-y-4 pt-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-primary-500">
+                        <Monitor className="h-3.5 w-3.5" />
+                        <span>Управление / ADMIN</span>
+                      </div>
+                    </div>
+                    
+                    {profile?.role === 'admin' ? (
+                      <button
+                        onClick={() => {
+                          onClose();
+                          navigate('/dashboard');
+                        }}
+                        className="w-full flex items-center justify-between bg-primary-500/10 text-primary-500 rounded-[16px] p-4 border border-primary-500/20 active:scale-[0.98] transition-all"
+                      >
+                        <div className="text-left">
+                          <p className="font-bold text-sm">Панель администратора</p>
+                          <p className="text-xs opacity-80 mt-0.5">Управление группами и профилями</p>
+                        </div>
+                        <Monitor className="h-5 w-5" />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          onClose();
+                          navigate('/schedule-editor');
+                        }}
+                        className="w-full flex items-center justify-between bg-primary-500/10 text-primary-500 rounded-[16px] p-4 border border-primary-500/20 active:scale-[0.98] transition-all"
+                      >
+                        <div className="text-left">
+                          <p className="font-bold text-sm">Редактор расписания</p>
+                          <p className="text-xs opacity-80 mt-0.5">Добавить или удалить пары</p>
+                        </div>
+                        <Monitor className="h-5 w-5" />
+                      </button>
+                    )}
+                  </section>
+                )}
+
                 {/* About Section */}
                 <section className="space-y-4 pt-4">
                   <div className="flex items-center justify-center gap-2 text-[11px] font-bold uppercase tracking-widest text-text-muted-light dark:text-text-muted-dark">
@@ -181,6 +254,11 @@ export function SettingsSheet({ isOpen, onClose }: SettingsSheetProps) {
               </div>
             </div>
           </motion.div>
+          
+          <InviteModal 
+            isOpen={isInviteModalOpen} 
+            onClose={() => setIsInviteModalOpen(false)} 
+          />
         </>
       )}
     </AnimatePresence>

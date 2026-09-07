@@ -114,6 +114,8 @@ export const translations = {
       wednesday: 'Ср',
       thursday: 'Чт',
       friday: 'Пт',
+      saturday: 'Сб',
+      sunday: 'Вс',
     },
     months: {
       0: 'января',
@@ -195,6 +197,8 @@ export const translations = {
       wednesday: 'Wed',
       thursday: 'Thu',
       friday: 'Fri',
+      saturday: 'Sat',
+      sunday: 'Sun',
     },
     months: {
       0: 'January',

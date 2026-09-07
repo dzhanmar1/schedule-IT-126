@@ -106,12 +106,13 @@ export function LessonCard({ lesson, currentTime, isActiveDay, index, onClick }:
         onClick={() => onClick(lesson)}
         className={cn(
           'relative ml-[56px] mr-2 flex-1 overflow-hidden rounded-[20px] transition-colors duration-300 cursor-pointer',
-          isCurrent ? 'p-4 bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-xl shadow-primary-500/30 animate-pulse-glow border-none' : '',
-          isPast ? 'p-3 bg-card-light/40 dark:bg-card-dark/40 border border-transparent opacity-60 hover:opacity-80' : '',
-          isUpcoming ? 'p-4 bg-card-light dark:bg-card-dark shadow-sm border border-border-light dark:border-border-dark hover:shadow-md' : ''
+          lesson.isCancelled ? 'p-3 bg-red-500/10 dark:bg-red-500/10 border border-red-500/20 opacity-80' : 
+          isCurrent ? 'p-4 bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-xl shadow-primary-500/30 animate-pulse-glow border-none' : 
+          isPast ? 'p-3 bg-card-light/40 dark:bg-card-dark/40 border border-transparent opacity-60 hover:opacity-80' : 
+          'p-4 bg-card-light dark:bg-card-dark shadow-sm border border-border-light dark:border-border-dark hover:shadow-md'
         )}
       >
-        {isCurrent && (
+        {isCurrent && !lesson.isCancelled && (
           <div className="absolute bottom-0 left-0 h-1 w-full bg-black/10">
             <motion.div
               className="h-full bg-gradient-to-r from-white/40 to-white/90 rounded-r"
@@ -125,21 +126,36 @@ export function LessonCard({ lesson, currentTime, isActiveDay, index, onClick }:
         <motion.div layout className="relative z-10 flex flex-col">
           {/* Header row: Time & Badges */}
           <motion.div layout className="flex justify-between items-start mb-2.5">
-            <div className={cn('font-bold tracking-tight', isCurrent ? 'text-primary-100 text-sm' : isPast ? 'text-text-muted-light dark:text-text-muted-dark text-xs' : 'text-text-secondary-light dark:text-text-secondary-dark text-sm')}>
-              {lesson.time}
+            <div className={cn('font-bold tracking-tight', 
+              lesson.isCancelled ? 'text-red-500' : 
+              isCurrent ? 'text-primary-100 text-sm' : 
+              isPast ? 'text-text-muted-light dark:text-text-muted-dark text-xs' : 
+              'text-text-secondary-light dark:text-text-secondary-dark text-sm'
+            )}>
+              {lesson.originalTime ? (
+                <div className="flex flex-col">
+                  <span className="line-through opacity-50 text-[10px]">{lesson.originalTime}</span>
+                  <span className="text-orange-500">{lesson.time}</span>
+                </div>
+              ) : lesson.time}
             </div>
 
-            {isCurrent && statusInfo.minutesLeft != null && (
+            {isCurrent && !lesson.isCancelled && statusInfo.minutesLeft != null && (
               <span className="text-[10px] font-bold bg-white/25 px-2 py-0.5 rounded-full animate-pulse backdrop-blur-sm">
                 {t('ui.remainingTime')} {statusInfo.minutesLeft} {t('ui.minutesShort')}
               </span>
             )}
-            {isUpcoming && statusInfo.minutesUntil != null && statusInfo.minutesUntil < 60 && (
+            {lesson.isCancelled && (
+              <span className="text-[10px] font-bold text-red-500 bg-red-500/20 px-2 py-0.5 rounded-full uppercase">
+                ОТМЕНЕНО
+              </span>
+            )}
+            {isUpcoming && !lesson.isCancelled && statusInfo.minutesUntil != null && statusInfo.minutesUntil < 60 && (
               <span className="text-[10px] font-bold text-primary-600 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/40 px-2 py-0.5 rounded-full">
                 {t('ui.upcomingIn', { time: statusInfo.minutesUntil })}
               </span>
             )}
-            {isPast && (
+            {isPast && !lesson.isCancelled && (
               <span className="flex items-center gap-1 text-[10px] font-bold text-success uppercase">
                 <CheckCircle2 size={12} />
                 {t('ui.completed')}
@@ -153,7 +169,10 @@ export function LessonCard({ lesson, currentTime, isActiveDay, index, onClick }:
               layout
               className={cn(
                 'font-bold leading-tight',
-                isCurrent ? 'text-white text-[17px]' : isPast ? 'text-text-secondary-light dark:text-text-secondary-dark text-sm' : 'text-text-primary-light dark:text-text-primary-dark text-[17px]'
+                lesson.isCancelled ? 'line-through text-text-muted-light dark:text-text-muted-dark' :
+                isCurrent ? 'text-white text-[17px]' : 
+                isPast ? 'text-text-secondary-light dark:text-text-secondary-dark text-sm' : 
+                'text-text-primary-light dark:text-text-primary-dark text-[17px]'
               )}
             >
               {cleanSubject}
@@ -184,21 +203,34 @@ export function LessonCard({ lesson, currentTime, isActiveDay, index, onClick }:
               >
                 <div className="flex items-center gap-2">
                   <div className={cn(
-                    'w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold',
+                    'w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0',
+                    lesson.isCancelled ? 'bg-red-500/20 text-red-500' :
                     isCurrent 
                       ? 'bg-white/20 text-white' 
                       : 'bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300'
                   )}>
                     {lesson.teacher.split(' ').map(n => n[0]).join('').substring(0, 2)}
                   </div>
-                  <span className={cn('font-medium', isCurrent ? 'text-white/90' : 'text-text-secondary-light dark:text-text-secondary-dark')}>
-                    {lesson.teacher}
+                  <span className={cn('font-medium', 
+                    lesson.isCancelled ? 'line-through opacity-50' :
+                    isCurrent ? 'text-white/90' : 'text-text-secondary-light dark:text-text-secondary-dark'
+                  )}>
+                    {lesson.originalTeacher ? (
+                       <span><span className="line-through opacity-50 mr-1">{lesson.originalTeacher}</span><span className="text-orange-500">{lesson.teacher}</span></span>
+                    ) : lesson.teacher}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <MapPin size={15} className={isCurrent ? 'text-white/70 ml-0.5' : 'text-text-muted-light dark:text-text-muted-dark ml-0.5'} />
-                  <span className={cn('font-medium ml-0.5', isCurrent ? 'text-white/90' : 'text-text-secondary-light dark:text-text-secondary-dark')}>
-                    {t('ui.auditoriumPrefix')} {lesson.auditorium}
+                  <MapPin size={15} className={lesson.isCancelled ? 'text-red-500/50 ml-0.5' : isCurrent ? 'text-white/70 ml-0.5' : 'text-text-muted-light dark:text-text-muted-dark ml-0.5'} />
+                  <span className={cn('font-medium ml-0.5', 
+                    lesson.isCancelled ? 'line-through opacity-50' :
+                    isCurrent ? 'text-white/90' : 'text-text-secondary-light dark:text-text-secondary-dark'
+                  )}>
+                    {lesson.originalAuditorium ? (
+                       <span><span className="line-through opacity-50 mr-1">{t('ui.auditoriumPrefix')} {lesson.originalAuditorium}</span><span className="text-orange-500">{lesson.auditorium}</span></span>
+                    ) : (
+                       <span>{t('ui.auditoriumPrefix')} {lesson.auditorium}</span>
+                    )}
                   </span>
                 </div>
               </motion.div>
