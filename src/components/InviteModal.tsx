@@ -13,9 +13,8 @@ export function InviteModal({ isOpen, onClose }: InviteModalProps) {
   const { profile } = useAuth();
   const [copied, setCopied] = useState(false);
 
-  if (!profile?.personal_invite_code) return null;
-
-  const inviteLink = `${window.location.origin}/?ref=${profile.personal_invite_code}`;
+  const inviteCode = profile?.personal_invite_code || 'error-no-code';
+  const inviteLink = `${window.location.origin}/?ref=${inviteCode}`;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(inviteLink);
