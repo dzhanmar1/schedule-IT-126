@@ -32,3 +32,26 @@ export interface LessonException {
   new_auditorium: string | null;
   new_teacher: string | null;
 }
+
+export interface Teacher {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  created_at: string;
+}
+
+export interface Subject {
+  id: string;
+  name: string;
+  short_name: string | null;
+  created_at: string;
+}
+
+export interface Auditorium {
+  id: string;
+  name: string;
+  building: string | null;
+  created_at: string;
+}
+

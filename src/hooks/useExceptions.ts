@@ -42,7 +42,11 @@ export function useExceptions(startDate: string, endDate: string) {
         },
         (payload) => {
           if (payload.eventType === 'INSERT') {
-            setExceptions(prev => [...prev, payload.new as LessonException]);
+            const newException = payload.new as LessonException;
+            // Only add to state if within the current date range
+            if (newException.date >= startDate && newException.date <= endDate) {
+              setExceptions(prev => [...prev, newException]);
+            }
           } else if (payload.eventType === 'UPDATE') {
             setExceptions(prev => prev.map(e => e.id === payload.new.id ? payload.new as LessonException : e));
           } else if (payload.eventType === 'DELETE') {

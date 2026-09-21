@@ -103,7 +103,7 @@ export function LessonCard({ lesson, currentTime, isActiveDay, index, onClick }:
           x: { duration: 0.4, delay: index * 0.08 }
         }}
         whileTap={{ scale: 0.98 }}
-        onClick={() => onClick(lesson)}
+        onClick={() => !lesson.isCancelled && onClick(lesson)}
         className={cn(
           'relative ml-[56px] mr-2 flex-1 overflow-hidden rounded-[20px] transition-colors duration-300 cursor-pointer',
           lesson.isCancelled ? 'p-3 bg-red-500/10 dark:bg-red-500/10 border border-red-500/20 opacity-80' : 
@@ -209,7 +209,7 @@ export function LessonCard({ lesson, currentTime, isActiveDay, index, onClick }:
                       ? 'bg-white/20 text-white' 
                       : 'bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300'
                   )}>
-                    {lesson.teacher.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                    {(lesson.teacher || '?').split(' ').map(n => n[0] || '').join('').substring(0, 2) || '?'}
                   </div>
                   <span className={cn('font-medium', 
                     lesson.isCancelled ? 'line-through opacity-50' :

@@ -4,14 +4,14 @@ import { Settings, Bell, BellOff, Share2 } from 'lucide-react';
 import { useLanguage, DAY_KEYS_ORDERED } from '../i18n';
 import { useNotifications } from '../hooks/useNotifications';
 import { useAuth } from '../contexts/AuthContext';
+import { useCurrentTime } from '../hooks/useCurrentTime';
 import { cn } from '../utils/cn';
 
 interface HeaderProps {
   onSettingsOpen: () => void;
 }
 
-function getGreetingKey(): string {
-  const hour = new Date().getHours();
+function getGreetingKey(hour: number): string {
   if (hour >= 5 && hour < 12) return 'ui.goodMorning';
   if (hour >= 12 && hour < 17) return 'ui.goodAfternoon';
   if (hour >= 17 && hour < 22) return 'ui.goodEvening';
@@ -22,8 +22,9 @@ export function Header({ onSettingsOpen }: HeaderProps) {
   const { t } = useLanguage();
   const { profile } = useAuth();
   const { permission, requestPermission } = useNotifications();
+  const currentTime = useCurrentTime();
   const [scrolled, setScrolled] = useState(false);
-  const [greetingKey, setGreetingKey] = useState(getGreetingKey);
+  const [greetingKey, setGreetingKey] = useState(() => getGreetingKey(currentTime.getHours()));
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -31,13 +32,12 @@ export function Header({ onSettingsOpen }: HeaderProps) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Update greeting every minute
+  // Update greeting every minute (based on currentTime from TimeContext)
   useEffect(() => {
-    const timer = setInterval(() => setGreetingKey(getGreetingKey()), 60_000);
-    return () => clearInterval(timer);
-  }, []);
+    setGreetingKey(getGreetingKey(currentTime.getHours()));
+  }, [currentTime]);
 
-  const today = new Date();
+  const today = currentTime;
   const monthName = t(`months.${today.getMonth()}`);
   const jsDay = today.getDay(); // 0=Sun, 1=Mon...
   const dayKeyIndex = jsDay >= 1 && jsDay <= 5 ? jsDay - 1 : -1;

@@ -30,8 +30,8 @@ export function InviteModal({ isOpen, onClose }: InviteModalProps) {
           text: 'Переходи по ссылке, чтобы смотреть расписание нашей группы:',
           url: inviteLink,
         });
-      } catch (err) {
-        console.log('Error sharing:', err);
+      } catch {
+        // user cancelled or share not available
       }
     } else {
       copyToClipboard();

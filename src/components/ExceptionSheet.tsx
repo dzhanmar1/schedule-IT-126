@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Trash2, Save, Ban } from 'lucide-react';
 import type { ClassInfo } from '../data/schedule';
+import type { LessonException } from '../types';
 import { cn } from '../utils/cn';
 
 interface ExceptionSheetProps {
@@ -9,7 +10,7 @@ interface ExceptionSheetProps {
   date: string; // YYYY-MM-DD
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: any) => Promise<void>;
+  onSave: (data: Omit<LessonException, 'id' | 'group_id'>) => Promise<void>;
   onDelete: () => Promise<void>;
 }
 
@@ -25,15 +26,17 @@ export function ExceptionSheet({ lesson, date, isOpen, onClose, onSave, onDelete
   useEffect(() => {
     if (isOpen && lesson) {
       setIsCancelled(!!lesson.isCancelled);
-      const timeToUse = lesson.originalTime ? lesson.time : '';
-      if (timeToUse && timeToUse.includes('-')) {
-        const parts = timeToUse.split('-');
+      // Always pre-fill with the currently active changed time (if exception exists)
+      const changedTime = lesson.originalTime ? lesson.time : '';
+      if (changedTime && changedTime.includes('-')) {
+        const parts = changedTime.split('-');
         setNewStartTime(parts[0].trim());
         setNewEndTime(parts[1].trim());
       } else {
         setNewStartTime('');
         setNewEndTime('');
       }
+      // Pre-fill changed room/teacher if an exception already exists
       setNewRoom(lesson.originalAuditorium ? lesson.auditorium : '');
       setNewTeacher(lesson.originalTeacher ? lesson.teacher : '');
     }
@@ -53,7 +56,7 @@ export function ExceptionSheet({ lesson, date, isOpen, onClose, onSave, onDelete
       }
 
       await onSave({
-        template_id: lesson.id,
+        template_id: lesson.id!,
         date: date,
         is_cancelled: isCancelled,
         new_start_time: start_time,
@@ -209,7 +212,7 @@ export function ExceptionSheet({ lesson, date, isOpen, onClose, onSave, onDelete
                   type="submit"
                   disabled={loading}
                   className={cn(
-                    "flexitems-center justify-center gap-2 py-3.5 bg-primary-500 text-white rounded-xl font-bold shadow-lg shadow-primary-500/25 transition-all disabled:opacity-70",
+                    "flex items-center justify-center gap-2 py-3.5 bg-primary-500 text-white rounded-xl font-bold shadow-lg shadow-primary-500/25 transition-all disabled:opacity-70",
                     hasChanges ? "flex-1" : "w-full"
                   )}
                 >

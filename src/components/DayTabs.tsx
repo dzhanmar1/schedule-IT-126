@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useLanguage, DAYS_ORDER, DAY_KEYS_ORDERED } from '../i18n';
 import { cn } from '../utils/cn';
 import { startOfWeek, addDays, isSameDay } from 'date-fns';
+import { useCurrentTime } from '../hooks/useCurrentTime';
 
 interface DayTabsProps {
   selectedDay: string;
@@ -13,7 +14,7 @@ interface DayTabsProps {
 export function DayTabs({ selectedDay, onSelectDay }: DayTabsProps) {
   const { t } = useLanguage();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const today = new Date();
+  const today = useCurrentTime();
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
 
   const weekDays = DAYS_ORDER.map((dayKey, idx) => {

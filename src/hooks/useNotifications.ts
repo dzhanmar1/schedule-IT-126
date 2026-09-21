@@ -19,11 +19,28 @@ export function useNotifications() {
     setPermission(perm);
   };
 
-  const scheduleNotification = (title: string, options?: NotificationOptions) => {
-    if (permission === 'granted') {
+  const scheduleNotification = async (title: string, options?: NotificationOptions) => {
+    if (permission !== 'granted') return;
+
+    // Prefer Service Worker notifications (required for PWA on mobile)
+    if ('serviceWorker' in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        await registration.showNotification(title, options);
+        return;
+      } catch {
+        // SW not ready or not supported — fall through to basic Notification
+      }
+    }
+
+    // Fallback for desktop browsers without SW
+    try {
       new Notification(title, options);
+    } catch {
+      // Some browsers block new Notification() in certain contexts
     }
   };
 
   return { permission, requestPermission, scheduleNotification };
 }
+

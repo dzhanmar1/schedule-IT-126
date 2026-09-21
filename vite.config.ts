@@ -40,13 +40,15 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,json,woff,woff2}'],
         runtimeCaching: [
           {
+            // Supabase API: always try network first, fallback to cache when offline
             urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
-            handler: 'CacheFirst',
+            handler: 'NetworkFirst',
             options: {
               cacheName: 'supabase-api-cache',
+              networkTimeoutSeconds: 5,
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 * 7 // 1 week
+                maxAgeSeconds: 60 * 5 // Cache for 5 minutes (offline fallback only)
               },
               cacheableResponse: {
                 statuses: [0, 200]

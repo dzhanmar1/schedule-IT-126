@@ -21,8 +21,8 @@ export function useNotificationScheduler(todayClasses: ClassInfo[]) {
 
       const notifyKey = `${lesson.id || lesson.subject}-${lesson.time}-${currentTime.toDateString()}`;
 
-      // Уведомляем ровно за 15 минут до начала пары
-      if (diff === 15 && !notifiedSet.current.has(notifyKey)) {
+      // Уведомляем за 15 минут до начала пары (диапазон 1–15, т.к. таймер тикает каждые 10с)
+      if (diff > 0 && diff <= 15 && !notifiedSet.current.has(notifyKey)) {
         scheduleNotification(`Скоро пара: ${lesson.subject.replace(/\s*\/\s*(лек|пр|лаб)\s*/i, '')}`, {
           body: `Начало через 15 минут в ауд. ${lesson.auditorium}`,
         });

@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowLeft, Plus, Trash2, Loader2, Sparkles, Copy, X, Pencil, CopyPlus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSchedule } from '../../hooks/useSchedule';
 import { useLanguage } from '../../i18n';
+import { supabase } from '../../lib/supabase';
+import type { Teacher, Subject, Auditorium } from '../../types';
 
 const getTypeColorClass = (type: string | null) => {
   if (!type) return 'border-l-primary-500';
@@ -45,6 +47,29 @@ export function ScheduleEditorScreen() {
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [importJson, setImportJson] = useState('');
+
+  // Dictionaries autocomplete data
+  const [dictTeachers, setDictTeachers] = useState<Teacher[]>([]);
+  const [dictSubjects, setDictSubjects] = useState<Subject[]>([]);
+  const [dictAuditoriums, setDictAuditoriums] = useState<Auditorium[]>([]);
+
+  useEffect(() => {
+    const fetchDictionaries = async () => {
+      try {
+        const [tRes, sRes, aRes] = await Promise.all([
+          supabase.from('teachers').select('*').order('name'),
+          supabase.from('subjects').select('*').order('name'),
+          supabase.from('auditoriums').select('*').order('name')
+        ]);
+        if (tRes.data) setDictTeachers(tRes.data);
+        if (sRes.data) setDictSubjects(sRes.data);
+        if (aRes.data) setDictAuditoriums(aRes.data);
+      } catch (err) {
+        console.error('Failed to load dictionaries for autocomplete:', err);
+      }
+    };
+    fetchDictionaries();
+  }, []);
   
   const [newLesson, setNewLesson] = useState<{
     day_of_week: number;
@@ -108,7 +133,7 @@ export function ScheduleEditorScreen() {
       }
       
       closeForm();
-    } catch (err) {
+    } catch {
       alert('Ошибка при сохранении пары');
     }
   };
@@ -185,7 +210,7 @@ export function ScheduleEditorScreen() {
 [
   { 
     "day_of_week": 1, // 1-ПН, 2-ВТ, 3-СР, 4-ЧТ, 5-ПТ, 6-СБ, 7-ВС
-    "week_parity": null, // null (каждую), "even" (четная), "odd" (нечетная)
+    "week_parity": null, // null (каждую неделю), 1 (нечётная неделя), 2 (чётная неделя)
     "start_time": "09:00:00", 
     "end_time": "10:30:00", 
     "subject": "Высшая математика", 
@@ -210,7 +235,7 @@ export function ScheduleEditorScreen() {
       <div className="max-w-lg mx-auto pb-24">
         {/* Header */}
         <div className="sticky top-0 z-20 bg-bg-light/80 dark:bg-bg-dark/80 backdrop-blur-xl border-b border-border-light dark:border-border-dark p-4 flex items-center gap-4">
-          <button onClick={() => navigate('/')} className="p-2 -ml-2 rounded-xl hover:bg-card-light dark:hover:bg-card-dark transition-colors">
+          <button onClick={() => navigate('/dashboard')} className="p-2 -ml-2 rounded-xl hover:bg-card-light dark:hover:bg-card-dark transition-colors">
             <ArrowLeft size={24} />
           </button>
           <h1 className="text-xl font-bold flex-1">Редактор расписания</h1>
@@ -383,23 +408,82 @@ export function ScheduleEditorScreen() {
                   
                   <div>
                     <label className="text-xs font-bold text-text-muted-light dark:text-text-muted-dark block mb-1">Предмет</label>
-                    <input type="text" required placeholder="Например: Высшая математика" value={newLesson.subject} onChange={e => setNewLesson({...newLesson, subject: e.target.value})} className="w-full p-3 rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark outline-none font-medium focus:border-primary-500 transition-colors" />
+                    <input
+                      type="text"
+                      required
+                      list="dict-subjects-list"
+                      placeholder="Например: Высшая математика"
+                      value={newLesson.subject}
+                      onChange={e => setNewLesson({...newLesson, subject: e.target.value})}
+                      className="w-full p-3 rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark outline-none font-medium focus:border-primary-500 transition-colors"
+                    />
+                    <datalist id="dict-subjects-list">
+                      {dictSubjects.map(s => (
+                        <option key={s.id} value={s.name}>
+                          {s.short_name ? `${s.name} (${s.short_name})` : s.name}
+                        </option>
+                      ))}
+                    </datalist>
                   </div>
                   
                   <div className="flex gap-4">
                     <div className="flex-1">
                       <label className="text-xs font-bold text-text-muted-light dark:text-text-muted-dark block mb-1">Аудитория</label>
-                      <input type="text" placeholder="101а" value={newLesson.auditorium} onChange={e => setNewLesson({...newLesson, auditorium: e.target.value})} className="w-full p-3 rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark outline-none text-sm focus:border-primary-500 transition-colors" />
+                      <input
+                        type="text"
+                        list="dict-auditoriums-list"
+                        placeholder="101а"
+                        value={newLesson.auditorium}
+                        onChange={e => setNewLesson({...newLesson, auditorium: e.target.value})}
+                        className="w-full p-3 rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark outline-none text-sm focus:border-primary-500 transition-colors"
+                      />
+                      <datalist id="dict-auditoriums-list">
+                        {dictAuditoriums.map(a => (
+                          <option key={a.id} value={a.name}>
+                            {a.building ? `${a.name} • ${a.building}` : a.name}
+                          </option>
+                        ))}
+                      </datalist>
                     </div>
                     <div className="flex-[2]">
                       <label className="text-xs font-bold text-text-muted-light dark:text-text-muted-dark block mb-1">Преподаватель</label>
-                      <input type="text" placeholder="Фамилия И.О." value={newLesson.teacher} onChange={e => setNewLesson({...newLesson, teacher: e.target.value})} className="w-full p-3 rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark outline-none text-sm focus:border-primary-500 transition-colors" />
+                      <input
+                        type="text"
+                        list="dict-teachers-list"
+                        placeholder="Фамилия И.О."
+                        value={newLesson.teacher}
+                        onChange={e => setNewLesson({...newLesson, teacher: e.target.value})}
+                        className="w-full p-3 rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark outline-none text-sm focus:border-primary-500 transition-colors"
+                      />
+                      <datalist id="dict-teachers-list">
+                        {dictTeachers.map(t => (
+                          <option key={t.id} value={t.name}>
+                            {t.name}
+                          </option>
+                        ))}
+                      </datalist>
                     </div>
                   </div>
                   
                   <div>
                     <label className="text-xs font-bold text-text-muted-light dark:text-text-muted-dark block mb-1">Тип занятия (тег)</label>
-                    <input type="text" placeholder="Лекция, Семинар, Лабораторная..." value={newLesson.type_tag} onChange={e => setNewLesson({...newLesson, type_tag: e.target.value})} className="w-full p-3 rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark outline-none text-sm focus:border-primary-500 transition-colors" />
+                    <input
+                      type="text"
+                      list="lesson-types-list"
+                      placeholder="Лекция, Семинар, Лабораторная..."
+                      value={newLesson.type_tag}
+                      onChange={e => setNewLesson({...newLesson, type_tag: e.target.value})}
+                      className="w-full p-3 rounded-xl bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark outline-none text-sm focus:border-primary-500 transition-colors"
+                    />
+                    <datalist id="lesson-types-list">
+                      <option value="Лекция" />
+                      <option value="Практика" />
+                      <option value="Лабораторная" />
+                      <option value="Семинар" />
+                      <option value="Консультация" />
+                      <option value="Зачет" />
+                      <option value="Экзамен" />
+                    </datalist>
                   </div>
                   
                   <div className="pt-4 pb-6">

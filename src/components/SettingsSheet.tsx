@@ -6,7 +6,6 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useNotifications } from '../hooks/useNotifications';
 import { ToggleSwitch } from './ToggleSwitch';
 import { cn } from '../utils/cn';
-import { scheduleData } from '../data/schedule';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { UserPlus } from 'lucide-react';
@@ -244,7 +243,7 @@ export function SettingsSheet({ isOpen, onClose }: SettingsSheetProps) {
                       {t('ui.scheduleTitle')}
                     </p>
                     <p className="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark mt-1">
-                      {t('ui.groupLabel')}: {scheduleData.group}
+                      {t('ui.groupLabel')}: {profile?.groups?.name || '—'}
                     </p>
                     <p className="text-xs text-text-muted-light dark:text-text-muted-dark mt-2">
                       {t('ui.version')} 1.0.0 · Made with ❤️

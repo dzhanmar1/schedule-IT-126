@@ -13,11 +13,11 @@ export function TimeProvider({ children }: { children: ReactNode }) {
   const [realTime, setRealTime] = useState(new Date());
   const [mockTime, setMockTime] = useState<Date | null>(null);
 
-  // Update real time every 30 seconds
+  // Update real time every 10 seconds for smoother progress bar and timely notifications
   useEffect(() => {
     const timer = setInterval(() => {
       setRealTime(new Date());
-    }, 30000);
+    }, 10000);
     return () => clearInterval(timer);
   }, []);
 

@@ -116,7 +116,7 @@ export function DaySchedule({ daySchedule, currentTime, isActiveDay, onLessonSel
             const nextLesson = !isLast ? classes[idx + 1] : null;
 
             return (
-              <div key={`${lesson.time}-${idx}`}>
+              <div key={lesson.id || `${lesson.time}-${idx}`}>
                 <LessonCard
                   lesson={lesson}
                   currentTime={currentTime}

@@ -79,7 +79,7 @@ export function AdminDashboardScreen() {
               <BookOpen className="w-12 h-12 mb-4" />
               <h3 className="text-lg font-bold text-text-primary-light dark:text-text-primary-dark">Справочники</h3>
               <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark mt-2 text-center">
-                Управление списком преподавателей и дисциплин (в разработке)
+                Управление преподавателями, дисциплинами и аудиториями
               </p>
             </motion.button>
           </div>

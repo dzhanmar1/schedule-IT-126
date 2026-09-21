@@ -76,6 +76,12 @@ export function useNotes(subjectKey: string | null) {
             } catch {
               setData({ notes: (payload.new as any).content, tasks: [] });
             }
+          } else if (payload.eventType === 'DELETE') {
+            // Record was deleted — reset to empty state
+            if (recordIdRef.current === (payload.old as any).id) {
+              recordIdRef.current = null;
+              setData({ notes: '', tasks: [] });
+            }
           }
         }
       )

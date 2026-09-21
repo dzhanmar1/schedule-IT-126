@@ -16,10 +16,11 @@ import { startOfWeek, addDays, format } from 'date-fns';
 import { useNotificationScheduler } from '../hooks/useNotificationScheduler';
 import { useSchedule } from '../hooks/useSchedule';
 import { useExceptions } from '../hooks/useExceptions';
+import { useAuth } from '../contexts/AuthContext';
 
 export function MainScheduleScreen() {
   const currentTime = useCurrentTime();
-
+  const { profile } = useAuth();
   const { lessons } = useSchedule();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [selectedNotesLesson, setSelectedNotesLesson] = useState<ClassInfo | null>(null);
@@ -46,7 +47,13 @@ export function MainScheduleScreen() {
     const dbDay = idx + 1;
     const dateStr = weekDates[idx];
     const dayLessons = lessons
-      .filter(l => l.day_of_week === dbDay && (l.week_parity === null || l.week_parity === parityNumber))
+      .filter(l => {
+        if (l.day_of_week !== dbDay) return false;
+        if (l.week_parity !== null && l.week_parity !== parityNumber) return false;
+        // Subgroup filter: show lessons for everyone (null) or matching student's subgroup
+        if (l.subgroup !== null && profile?.subgroup !== null && l.subgroup !== profile?.subgroup) return false;
+        return true;
+      })
       .sort((a, b) => a.start_time.localeCompare(b.start_time));
     return {
       day: dayName,

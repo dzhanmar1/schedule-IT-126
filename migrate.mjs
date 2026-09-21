@@ -100,6 +100,29 @@ CREATE TABLE IF NOT EXISTS public.personal_notes (
     UNIQUE(user_id, subject) 
 );
 
+-- 8. Dictionaries: Teachers, Subjects, Auditoriums
+CREATE TABLE IF NOT EXISTS public.teachers (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    name TEXT NOT NULL,
+    email TEXT,
+    phone TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.subjects (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    name TEXT NOT NULL,
+    short_name TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.auditoriums (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    name TEXT NOT NULL,
+    building TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
 -- RLS (Row Level Security) - Basic Setup
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.faculties ENABLE ROW LEVEL SECURITY;
@@ -108,6 +131,9 @@ ALTER TABLE public.lesson_templates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.lesson_exceptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.group_homeworks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.personal_notes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.subjects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.auditoriums ENABLE ROW LEVEL SECURITY;
 
 -- Enable Realtime for specific tables
 ALTER PUBLICATION supabase_realtime ADD TABLE public.lesson_exceptions;
@@ -133,6 +159,13 @@ BEGIN
     DROP POLICY IF EXISTS "Starosta manage homeworks" ON public.group_homeworks;
     
     DROP POLICY IF EXISTS "Users manage own notes" ON public.personal_notes;
+
+    DROP POLICY IF EXISTS "Anyone can view teachers" ON public.teachers;
+    DROP POLICY IF EXISTS "Admins can manage teachers" ON public.teachers;
+    DROP POLICY IF EXISTS "Anyone can view subjects" ON public.subjects;
+    DROP POLICY IF EXISTS "Admins can manage subjects" ON public.subjects;
+    DROP POLICY IF EXISTS "Anyone can view auditoriums" ON public.auditoriums;
+    DROP POLICY IF EXISTS "Admins can manage auditoriums" ON public.auditoriums;
 END $$;
 
 CREATE POLICY "Users can read own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
@@ -163,6 +196,16 @@ CREATE POLICY "Starosta manage homeworks" ON public.group_homeworks FOR ALL TO a
 );
 
 CREATE POLICY "Users manage own notes" ON public.personal_notes FOR ALL TO authenticated USING (auth.uid() = user_id);
+
+CREATE POLICY "Anyone can view teachers" ON public.teachers FOR SELECT USING (true);
+CREATE POLICY "Admins can manage teachers" ON public.teachers FOR ALL USING (public.get_user_role() = 'admin') WITH CHECK (public.get_user_role() = 'admin');
+
+CREATE POLICY "Anyone can view subjects" ON public.subjects FOR SELECT USING (true);
+CREATE POLICY "Admins can manage subjects" ON public.subjects FOR ALL USING (public.get_user_role() = 'admin') WITH CHECK (public.get_user_role() = 'admin');
+
+CREATE POLICY "Anyone can view auditoriums" ON public.auditoriums FOR SELECT USING (true);
+CREATE POLICY "Admins can manage auditoriums" ON public.auditoriums FOR ALL USING (public.get_user_role() = 'admin') WITH CHECK (public.get_user_role() = 'admin');
+
 
 `;
 
