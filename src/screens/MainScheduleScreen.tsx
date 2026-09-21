@@ -52,6 +52,10 @@ export function MainScheduleScreen() {
         if (l.week_parity !== null && l.week_parity !== parityNumber) return false;
         // Subgroup filter: show lessons for everyone (null) or matching student's subgroup
         if (l.subgroup !== null && profile?.subgroup !== null && l.subgroup !== profile?.subgroup) return false;
+        
+        if (l.valid_from && dateStr < l.valid_from) return false;
+        if (l.valid_until && dateStr >= l.valid_until) return false;
+        
         return true;
       })
       .sort((a, b) => a.start_time.localeCompare(b.start_time));

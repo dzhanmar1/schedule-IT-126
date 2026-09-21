@@ -106,7 +106,7 @@ export function ScheduleEditorScreen() {
   }
 
   const dayLessons = lessons
-    .filter(l => l.day_of_week === selectedDay)
+    .filter(l => l.day_of_week === selectedDay && l.valid_until === null)
     .sort((a, b) => a.start_time.localeCompare(b.start_time));
 
   const handleSave = async (e: React.FormEvent) => {

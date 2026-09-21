@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import type { LessonTemplate } from '../types';
@@ -9,7 +9,7 @@ export function useSchedule() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchSchedule = async () => {
+  const fetchSchedule = useCallback(async () => {
     if (!profile?.group_id) return;
     
     setLoading(true);
@@ -27,19 +27,20 @@ export function useSchedule() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [profile?.group_id]);
 
   useEffect(() => {
     fetchSchedule();
-  }, [profile?.group_id]);
+  }, [fetchSchedule]);
 
   const addLesson = async (lessonData: Omit<LessonTemplate, 'id' | 'group_id'>) => {
     if (!profile?.group_id) return;
     
     try {
+      const today = new Date().toISOString().split('T')[0];
       const { data, error: insertError } = await supabase
         .from('lesson_templates')
-        .insert([{ ...lessonData, group_id: profile.group_id }])
+        .insert([{ ...lessonData, group_id: profile.group_id, valid_from: today }])
         .select()
         .single();
 
@@ -70,13 +71,16 @@ export function useSchedule() {
 
   const deleteLesson = async (id: string) => {
     try {
+      const today = new Date().toISOString().split('T')[0];
       const { error: deleteError } = await supabase
         .from('lesson_templates')
-        .delete()
+        .update({ valid_until: today })
         .eq('id', id);
 
       if (deleteError) throw deleteError;
-      setLessons(prev => prev.filter(l => l.id !== id));
+      
+      // Update local state instead of deleting
+      setLessons(prev => prev.map(l => l.id === id ? { ...l, valid_until: today } : l));
     } catch (err: any) {
       throw new Error(err.message);
     }
@@ -86,17 +90,25 @@ export function useSchedule() {
     if (!profile?.group_id) return;
     
     try {
-      // 1. Delete all existing lessons for this group
+      const today = new Date().toISOString().split('T')[0];
+      
+      // 1. Soft-delete all currently active lessons for this group
       const { error: deleteError } = await supabase
         .from('lesson_templates')
-        .delete()
-        .eq('group_id', profile.group_id);
+        .update({ valid_until: today })
+        .eq('group_id', profile.group_id)
+        .is('valid_until', null);
 
       if (deleteError) throw deleteError;
 
-      // 2. Insert new lessons
+      // 2. Insert new lessons with valid_from = today
       if (newLessons.length > 0) {
-        const toInsert = newLessons.map(l => ({ ...l, group_id: profile.group_id }));
+        const toInsert = newLessons.map(l => ({ 
+          ...l, 
+          group_id: profile.group_id,
+          valid_from: today,
+          valid_until: null
+        }));
         const { error: insertError } = await supabase
           .from('lesson_templates')
           .insert(toInsert);

@@ -128,6 +128,8 @@ export function WeekViewScreen() {
           if (l.day_of_week !== dbDay) return false;
           if (l.week_parity !== null && l.week_parity !== parityNumber) return false;
           if (l.subgroup !== null && profile?.subgroup !== null && l.subgroup !== profile?.subgroup) return false;
+          if (l.valid_from && dateStr < l.valid_from) return false;
+          if (l.valid_until && dateStr >= l.valid_until) return false;
           return true;
         })
         .sort((a, b) => a.start_time.localeCompare(b.start_time));

@@ -51,6 +51,16 @@ export function StatsScreen() {
           if (l.day_of_week !== dbDay) return false;
           if (period === 'week' && l.week_parity !== null && l.week_parity !== parityNumber) return false;
           if (l.subgroup !== null && profile?.subgroup !== null && l.subgroup !== profile?.subgroup) return false;
+          
+          if (period === 'week') {
+            if (l.valid_from && dateStr < l.valid_from) return false;
+            if (l.valid_until && dateStr >= l.valid_until) return false;
+          } else {
+            // For 'semester' stats, if a lesson was valid at any point, we can include it, 
+            // but usually we just want currently active lessons for semester.
+            // A simple approach is just to check valid_until IS NULL for the general semester template.
+            if (l.valid_until !== null) return false;
+          }
           return true;
         })
         .sort((a, b) => a.start_time.localeCompare(b.start_time));

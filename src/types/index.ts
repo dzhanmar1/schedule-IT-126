@@ -11,6 +11,8 @@ export interface LessonTemplate {
   auditorium: string | null;
   type_tag: string | null;
   subgroup: number | null; // 1, 2, null
+  valid_from?: string; // YYYY-MM-DD
+  valid_until?: string | null; // YYYY-MM-DD
 }
 
 export interface GroupHomework {
