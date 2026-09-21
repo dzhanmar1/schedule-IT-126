@@ -71,7 +71,6 @@ export function LessonCard({ lesson, currentTime, isActiveDay, index, onClick }:
     <div className="relative py-2 flex w-full">
       {/* Timeline Dot */}
       <motion.div 
-        layout
         className="absolute left-[27px] top-6 -translate-x-1/2 z-10"
         style={{ originY: 0 }}
       >
@@ -95,11 +94,9 @@ export function LessonCard({ lesson, currentTime, isActiveDay, index, onClick }:
       {/* Card Content */}
       <motion.div
         ref={cardRef}
-        layout
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{
-          layout: { type: 'spring', bounce: 0.2, duration: 0.6 },
           opacity: { duration: 0.4, delay: index * 0.08 },
           x: { duration: 0.4, delay: index * 0.08 }
         }}

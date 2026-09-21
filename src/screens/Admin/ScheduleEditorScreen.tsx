@@ -13,7 +13,7 @@ const getTypeColorClass = (type: string | null) => {
   const lower = type.toLowerCase();
   if (lower.includes('лекц')) return 'border-l-blue-500';
   if (lower.includes('практ') || lower.includes('семин')) return 'border-l-emerald-500';
-  if (lower.includes('лаб')) return 'border-l-purple-500';
+  if (lower.includes('лаб')) return 'border-l-amber-500';
   return 'border-l-primary-500';
 };
 

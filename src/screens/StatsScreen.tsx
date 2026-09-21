@@ -109,7 +109,7 @@ export function StatsScreen() {
   const typeItems = [
     { label: t('ui.statsLecturesCount'), count: stats.lectureCount, color: 'bg-blue-500', textColor: 'text-blue-500', icon: BookOpen },
     { label: t('ui.statsPracticeCount'), count: stats.practiceCount, color: 'bg-emerald-500', textColor: 'text-emerald-500', icon: Zap },
-    { label: t('ui.statsLabCount'), count: stats.labCount, color: 'bg-purple-500', textColor: 'text-purple-500', icon: Flame },
+    { label: t('ui.statsLabCount'), count: stats.labCount, color: 'bg-amber-500', textColor: 'text-amber-500', icon: Flame },
   ].filter(item => item.count > 0);
 
   const cardVariants: Variants = {
@@ -178,7 +178,7 @@ export function StatsScreen() {
               initial="hidden"
               animate="visible"
               variants={cardVariants}
-              className="bg-gradient-to-br from-primary-500 to-[#8b5cf6] rounded-2xl p-4 text-white shadow-lg shadow-primary-500/20"
+              className="bg-gradient-to-br from-primary-500 to-blue-500 rounded-2xl p-4 text-white shadow-lg shadow-primary-500/20"
             >
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
@@ -379,8 +379,8 @@ export function StatsScreen() {
               {/* Top teacher */}
               {stats.topTeacher && (
                 <div className="flex items-center gap-3 px-4 py-3">
-                  <div className="w-9 h-9 bg-purple-50 dark:bg-purple-900/20 rounded-xl flex items-center justify-center shrink-0">
-                    <User size={16} className="text-purple-500" />
+                  <div className="w-9 h-9 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center shrink-0">
+                    <User size={16} className="text-blue-500" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-xs text-text-muted-light dark:text-text-muted-dark font-medium mb-0.5">

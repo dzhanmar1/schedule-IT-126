@@ -7,10 +7,10 @@ export function stringToColor(str: string): string {
     hash = str.charCodeAt(i) + ((hash << 5) - hash);
   }
 
-  // Use HSL for bright, pastel-like colors
-  const h = hash % 360;
-  const s = 65 + (hash % 15); // 65-80% saturation
-  const l = 55 + (hash % 10); // 55-65% lightness
+  // Use HSL for vivid, slightly darker colors to contrast well with white text
+  const h = Math.abs(hash) % 360;
+  const s = 70 + (Math.abs(hash) % 20); // 70-90% saturation
+  const l = 35 + (Math.abs(hash) % 15); // 35-50% lightness
 
   return `hsl(${h}, ${s}%, ${l}%)`;
 }
