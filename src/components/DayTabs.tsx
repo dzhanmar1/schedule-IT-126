@@ -9,9 +9,11 @@ interface DayTabsProps {
   selectedDay: string;
   onSelectDay: (day: string) => void;
   currentDayIndex: number;
+  /** Number of lessons per day, indexed by DAYS_ORDER index (0=Mon, 4=Fri) */
+  lessonsPerDay?: number[];
 }
 
-export function DayTabs({ selectedDay, onSelectDay }: DayTabsProps) {
+export function DayTabs({ selectedDay, onSelectDay, lessonsPerDay }: DayTabsProps) {
   const { t } = useLanguage();
   const scrollRef = useRef<HTMLDivElement>(null);
   const today = useCurrentTime();
@@ -25,6 +27,7 @@ export function DayTabs({ selectedDay, onSelectDay }: DayTabsProps) {
       dayNumber: date.getDate(),
       isToday: isSameDay(date, today),
       shortName: t(`daysShort.${DAY_KEYS_ORDERED[idx]}`),
+      lessonCount: lessonsPerDay?.[idx] ?? null,
     };
   });
 
@@ -44,6 +47,7 @@ export function DayTabs({ selectedDay, onSelectDay }: DayTabsProps) {
       >
         {weekDays.map((day) => {
           const isSelected = selectedDay === day.key;
+          const hasLessons = day.lessonCount !== null && day.lessonCount > 0;
 
           return (
             <motion.button
@@ -86,6 +90,24 @@ export function DayTabs({ selectedDay, onSelectDay }: DayTabsProps) {
                       : 'bg-primary-500'
                   )}
                 />
+              )}
+
+              {/* Lessons count badge */}
+              {day.lessonCount !== null && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className={cn(
+                    'absolute -bottom-1.5 left-1/2 -translate-x-1/2 min-w-[1.2rem] h-[1.2rem] px-1 rounded-full flex items-center justify-center text-[9px] font-bold',
+                    isSelected
+                      ? 'bg-white text-primary-600'
+                      : hasLessons
+                        ? 'bg-primary-500 text-white'
+                        : 'bg-border-light dark:bg-border-dark text-text-muted-light dark:text-text-muted-dark'
+                  )}
+                >
+                  {day.lessonCount}
+                </motion.div>
               )}
             </motion.button>
           );

@@ -138,6 +138,7 @@ export function MainScheduleScreen() {
             selectedDay={selectedDay}
             onSelectDay={setSelectedDay}
             currentDayIndex={realDayIndex}
+            lessonsPerDay={dynamicSchedule.map(d => d.classes.filter(c => !c.isCancelled).length)}
           />
         </LayoutGroup>
 

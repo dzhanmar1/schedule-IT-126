@@ -3,14 +3,20 @@ import { useAuth } from './contexts/AuthContext';
 import { AuthScreen } from './components/Auth/AuthScreen';
 import { OnboardingScreen } from './components/Auth/OnboardingScreen';
 import { MainScheduleScreen } from './screens/MainScheduleScreen';
+import { WeekViewScreen } from './screens/WeekViewScreen';
+import { StatsScreen } from './screens/StatsScreen';
 import { ScheduleEditorScreen } from './screens/Admin/ScheduleEditorScreen';
 import { AdminDashboardScreen } from './screens/Admin/AdminDashboardScreen';
+import { BottomNav } from './components/BottomNav';
 import { Loader2 } from 'lucide-react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
-import { Routes, Route, Navigate } from 'react-router-dom';
+// Routes that show the bottom navigation
+const NAV_ROUTES = ['/', '/week', '/stats'];
 
 export default function App() {
   const { session, profile, isLoading } = useAuth();
+  const location = useLocation();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -42,13 +48,20 @@ export default function App() {
     return <OnboardingScreen />;
   }
 
+  const showBottomNav = NAV_ROUTES.includes(location.pathname);
+
   // If user has a group, show main routes
   return (
-    <Routes>
-      <Route path="/" element={<MainScheduleScreen />} />
-      <Route path="/dashboard" element={<AdminDashboardScreen />} />
-      <Route path="/schedule-editor" element={<ScheduleEditorScreen />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<MainScheduleScreen />} />
+        <Route path="/week" element={<WeekViewScreen />} />
+        <Route path="/stats" element={<StatsScreen />} />
+        <Route path="/dashboard" element={<AdminDashboardScreen />} />
+        <Route path="/schedule-editor" element={<ScheduleEditorScreen />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      {showBottomNav && <BottomNav />}
+    </>
   );
 }
