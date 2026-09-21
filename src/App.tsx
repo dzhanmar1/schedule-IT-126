@@ -8,7 +8,6 @@ import { StatsScreen } from './screens/StatsScreen';
 import { ScheduleEditorScreen } from './screens/Admin/ScheduleEditorScreen';
 import { AdminDashboardScreen } from './screens/Admin/AdminDashboardScreen';
 import { BottomNav } from './components/BottomNav';
-import { Loader2 } from 'lucide-react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { PageTransition } from './components/PageTransition';
@@ -32,11 +31,26 @@ export default function App() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-bg-light dark:bg-bg-dark text-text-primary-light dark:text-text-primary-dark">
-        <Loader2 className="animate-spin mb-4 text-primary-500" size={32} />
-        <p className="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark animate-pulse">
-          Загрузка расписания...
-        </p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-bg-light dark:bg-bg-dark overflow-hidden relative">
+        {/* Background glow effects */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-primary-500/20 rounded-full blur-[80px] animate-pulse" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-blue-500/20 rounded-full blur-[50px] animate-pulse" style={{ animationDelay: '1s' }} />
+        
+        {/* Glass card container */}
+        <div className="relative z-10 flex flex-col items-center justify-center p-8 rounded-3xl glass bg-white/10 dark:bg-black/10 border border-white/20 dark:border-white/5 shadow-2xl backdrop-blur-xl">
+          <div className="relative w-16 h-16 flex items-center justify-center mb-6">
+            <div className="absolute inset-0 rounded-2xl border-t-2 border-r-2 border-primary-500 animate-[spin_1.5s_linear_infinite]" />
+            <div className="absolute inset-2 rounded-xl border-b-2 border-l-2 border-blue-400 animate-[spin_2s_linear_infinite_reverse]" />
+            <div className="absolute inset-4 rounded-lg bg-gradient-to-tr from-primary-600 to-blue-500 animate-pulse-glow" />
+          </div>
+          
+          <h2 className="text-xl font-bold bg-gradient-to-r from-primary-400 to-blue-400 bg-clip-text text-transparent mb-2">
+            Schedule IT
+          </h2>
+          <p className="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark tracking-widest uppercase animate-pulse">
+            Загрузка...
+          </p>
+        </div>
       </div>
     );
   }

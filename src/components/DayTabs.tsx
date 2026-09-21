@@ -43,7 +43,7 @@ export function DayTabs({ selectedDay, onSelectDay, lessonsPerDay }: DayTabsProp
     <div className="w-full pt-1 pb-4">
       <div
         ref={scrollRef}
-        className="flex px-4 gap-2.5 overflow-x-auto hide-scrollbar snap-x snap-mandatory"
+        className="flex px-4 py-4 -my-4 gap-2.5 overflow-x-auto hide-scrollbar snap-x snap-mandatory"
       >
         {weekDays.map((day) => {
           const isSelected = selectedDay === day.key;

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useRef } from 'react';
 import type { ReactNode } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
@@ -30,6 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const initialLoadDone = useRef(false);
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -55,9 +56,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id).finally(() => setIsLoading(false));
+        fetchProfile(session.user.id).finally(() => {
+          setIsLoading(false);
+          initialLoadDone.current = true;
+        });
       } else {
         setIsLoading(false);
+        initialLoadDone.current = true;
       }
     });
 
@@ -67,15 +72,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
       if (session?.user) {
-        // Prevent showing loading spinner on TOKEN_REFRESHED (which happens when app comes to foreground)
-        if (event === 'SIGNED_IN') {
+        // Only show full-screen loader if this is a fresh login AND we haven't done initial load yet.
+        // Once the app is loaded, background token refreshes or re-focuses should NEVER block the UI.
+        if (event === 'SIGNED_IN' && !initialLoadDone.current) {
           setIsLoading(true);
         }
         fetchProfile(session.user.id).finally(() => {
-          if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
-            setIsLoading(false);
-          }
+          setIsLoading(false);
+          initialLoadDone.current = true;
         });
       } else {
         setProfile(null);
