@@ -64,12 +64,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        setIsLoading(true);
-        fetchProfile(session.user.id).finally(() => setIsLoading(false));
+        // Prevent showing loading spinner on TOKEN_REFRESHED (which happens when app comes to foreground)
+        if (event === 'SIGNED_IN') {
+          setIsLoading(true);
+        }
+        fetchProfile(session.user.id).finally(() => {
+          if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+            setIsLoading(false);
+          }
+        });
       } else {
         setProfile(null);
         setIsLoading(false);

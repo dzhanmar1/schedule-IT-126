@@ -5,6 +5,7 @@ import type { ClassInfo } from '../data/schedule';
 import { getClassStatus } from '../utils/time';
 import { cn } from '../utils/cn';
 import { useLanguage } from '../i18n';
+import { stringToColor } from '../utils/colors';
 
 interface LessonCardProps {
   lesson: ClassInfo;
@@ -105,11 +106,11 @@ export function LessonCard({ lesson, currentTime, isActiveDay, index, onClick }:
         whileTap={{ scale: 0.98 }}
         onClick={() => !lesson.isCancelled && onClick(lesson)}
         className={cn(
-          'relative ml-[56px] mr-2 flex-1 overflow-hidden rounded-[20px] transition-colors duration-300 cursor-pointer',
+          'relative ml-[56px] mr-2 flex-1 overflow-hidden rounded-[20px] transition-all duration-300 cursor-pointer',
           lesson.isCancelled ? 'p-3 bg-red-500/10 dark:bg-red-500/10 border border-red-500/20 opacity-80' : 
           isCurrent ? 'p-4 bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-xl shadow-primary-500/30 animate-pulse-glow border-none' : 
-          isPast ? 'p-3 bg-card-light/40 dark:bg-card-dark/40 border border-transparent opacity-60 hover:opacity-80' : 
-          'p-4 bg-card-light dark:bg-card-dark shadow-sm border border-border-light dark:border-border-dark hover:shadow-md'
+          isPast ? 'p-3 bg-glass-light/40 dark:bg-glass-dark/40 border border-transparent opacity-60 hover:opacity-80 glass' : 
+          'p-4 bg-glass-light dark:bg-glass-dark shadow-sm border border-white/50 dark:border-white/5 hover:shadow-md hover:-translate-y-0.5 glass'
         )}
       >
         {isCurrent && !lesson.isCancelled && (
@@ -202,13 +203,14 @@ export function LessonCard({ lesson, currentTime, isActiveDay, index, onClick }:
                 )}
               >
                 <div className="flex items-center gap-2">
-                  <div className={cn(
-                    'w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0',
-                    lesson.isCancelled ? 'bg-red-500/20 text-red-500' :
-                    isCurrent 
-                      ? 'bg-white/20 text-white' 
-                      : 'bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300'
-                  )}>
+                  <div 
+                    className={cn(
+                      'w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 shadow-sm border border-white/10',
+                      lesson.isCancelled ? 'bg-red-500/20 text-red-500' :
+                      isCurrent ? 'bg-white/20 text-white' : 'text-white'
+                    )}
+                    style={(!isCurrent && !lesson.isCancelled) ? { backgroundColor: stringToColor(lesson.teacher || '?') } : undefined}
+                  >
                     {(lesson.teacher || '?').split(' ').map(n => n[0] || '').join('').substring(0, 2) || '?'}
                   </div>
                   <span className={cn('font-medium', 

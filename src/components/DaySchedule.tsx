@@ -69,10 +69,13 @@ export function DaySchedule({ daySchedule, currentTime, isActiveDay, onLessonSel
       className="pb-24"
     >
       {/* Summary Card */}
-      <div className="bg-card-light dark:bg-card-dark rounded-2xl p-4 mb-6 shadow-sm border border-border-light dark:border-border-dark flex flex-col gap-3 glass">
-        <div className="flex items-center justify-between">
+      <div className="bg-glass-light dark:bg-glass-dark rounded-2xl p-4 mb-6 shadow-sm border border-white/50 dark:border-white/5 flex flex-col gap-3 glass relative overflow-hidden">
+        {/* Subtle background decoration */}
+        <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-primary-500/10 rounded-full blur-2xl" />
+        
+        <div className="flex items-center justify-between relative z-10">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 rounded-xl">
+            <div className="p-2.5 bg-gradient-to-br from-primary-400 to-primary-600 text-white rounded-xl shadow-lg shadow-primary-500/30">
               <CalendarClock size={20} />
             </div>
             <div>
@@ -88,7 +91,7 @@ export function DaySchedule({ daySchedule, currentTime, isActiveDay, onLessonSel
         
         {/* Progress Bar */}
         {isActiveDay && progressPercent > 0 && (
-          <div className="w-full mt-1">
+          <div className="w-full mt-1 relative z-10">
             <div className="flex justify-between text-[10px] font-bold text-text-muted-light dark:text-text-muted-dark uppercase tracking-wider mb-1.5">
               <span>{t('ui.dayProgress')}</span>
               <span>{Math.round(progressPercent)}%</span>
@@ -107,8 +110,8 @@ export function DaySchedule({ daySchedule, currentTime, isActiveDay, onLessonSel
 
       {/* Timeline Layout */}
       <div className="relative">
-        {/* Continuous Vertical Line */}
-        <div className="absolute left-[27px] top-4 bottom-4 w-px bg-border-light dark:bg-border-dark" />
+        {/* Continuous Vertical Line with Gradient */}
+        <div className="absolute left-[27px] top-4 bottom-4 w-px bg-gradient-to-b from-transparent via-primary-500/30 to-transparent" />
 
         <div className="flex flex-col gap-1">
           {classes.map((lesson, idx) => {

@@ -10,6 +10,8 @@ import { AdminDashboardScreen } from './screens/Admin/AdminDashboardScreen';
 import { BottomNav } from './components/BottomNav';
 import { Loader2 } from 'lucide-react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
+import { PageTransition } from './components/PageTransition';
 
 // Routes that show the bottom navigation
 const NAV_ROUTES = ['/', '/week', '/stats'];
@@ -53,14 +55,16 @@ export default function App() {
   // If user has a group, show main routes
   return (
     <>
-      <Routes>
-        <Route path="/" element={<MainScheduleScreen />} />
-        <Route path="/week" element={<WeekViewScreen />} />
-        <Route path="/stats" element={<StatsScreen />} />
-        <Route path="/dashboard" element={<AdminDashboardScreen />} />
-        <Route path="/schedule-editor" element={<ScheduleEditorScreen />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<PageTransition><MainScheduleScreen /></PageTransition>} />
+          <Route path="/week" element={<PageTransition><WeekViewScreen /></PageTransition>} />
+          <Route path="/stats" element={<PageTransition><StatsScreen /></PageTransition>} />
+          <Route path="/dashboard" element={<PageTransition><AdminDashboardScreen /></PageTransition>} />
+          <Route path="/schedule-editor" element={<PageTransition><ScheduleEditorScreen /></PageTransition>} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AnimatePresence>
       {showBottomNav && <BottomNav />}
     </>
   );
