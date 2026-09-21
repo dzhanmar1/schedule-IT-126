@@ -68,6 +68,7 @@ export function StatsScreen() {
             subject: l.subject,
             type: l.type_tag || '',
             teacher: ex.new_teacher || l.teacher || '',
+            teacherId: ex.new_teacher_id || l.teacher_id || undefined,
             auditorium: ex.new_auditorium || l.auditorium || '',
             isCancelled: ex.is_cancelled,
           } as ClassInfo;
@@ -78,13 +79,14 @@ export function StatsScreen() {
           subject: l.subject,
           type: l.type_tag || '',
           teacher: l.teacher || '',
+          teacherId: l.teacher_id || undefined,
           auditorium: l.auditorium || '',
         } as ClassInfo;
       });
 
       return { day: dayName, classes };
     });
-  }, [lessons, exceptions, period, parityNumber, profile?.subgroup]);
+  }, [lessons, exceptions, period, parityNumber, weekDates, profile?.subgroup]);
 
   const stats = useMemo(
     () => calculateScheduleStats(dynamicSchedule),

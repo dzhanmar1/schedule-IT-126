@@ -7,6 +7,7 @@ export interface LessonTemplate {
   end_time: string; // 'HH:MM:SS'
   subject: string;
   teacher: string | null;
+  teacher_id: string | null;
   auditorium: string | null;
   type_tag: string | null;
   subgroup: number | null; // 1, 2, null
@@ -31,6 +32,7 @@ export interface LessonException {
   new_end_time: string | null;
   new_auditorium: string | null;
   new_teacher: string | null;
+  new_teacher_id: string | null;
 }
 
 export interface Teacher {

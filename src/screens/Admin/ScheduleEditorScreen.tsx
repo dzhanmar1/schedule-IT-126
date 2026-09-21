@@ -114,6 +114,8 @@ export function ScheduleEditorScreen() {
     if (!newLesson.subject.trim()) return;
 
     try {
+      const selectedTeacher = dictTeachers.find(t => t.name === newLesson.teacher);
+      
       const lessonData = {
         day_of_week: newLesson.day_of_week,
         week_parity: newLesson.week_parity,
@@ -121,6 +123,7 @@ export function ScheduleEditorScreen() {
         end_time: newLesson.end_time.length === 5 ? newLesson.end_time + ':00' : newLesson.end_time,
         subject: newLesson.subject,
         teacher: newLesson.teacher || null,
+        teacher_id: selectedTeacher ? selectedTeacher.id : null,
         auditorium: newLesson.auditorium || null,
         type_tag: newLesson.type_tag || null,
         subgroup: null
@@ -195,7 +198,22 @@ export function ScheduleEditorScreen() {
       if (!Array.isArray(parsed)) throw new Error('Ожидается массив пар');
       if (!window.confirm('Внимание! Это полностью заменит текущее расписание. Продолжить?')) return;
       
-      await replaceSchedule(parsed);
+      const mappedLessons = parsed.map((l: any) => {
+        // Try to match teacher name with dictTeachers
+        const teacherMatch = l.teacher ? dictTeachers.find(t => 
+          t.name.toLowerCase() === l.teacher.toLowerCase() ||
+          t.name.toLowerCase().includes(l.teacher.toLowerCase().replace(/[^a-а-я]/gi, ''))
+        ) : null;
+
+        return {
+          ...l,
+          teacher_id: teacherMatch ? teacherMatch.id : null,
+          start_time: l.start_time.length === 5 ? l.start_time + ':00' : l.start_time,
+          end_time: l.end_time.length === 5 ? l.end_time + ':00' : l.end_time,
+        };
+      });
+
+      await replaceSchedule(mappedLessons);
       setIsImporting(false);
       setImportJson('');
       alert('Расписание успешно обновлено!');

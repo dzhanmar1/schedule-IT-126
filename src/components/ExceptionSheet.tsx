@@ -63,6 +63,7 @@ export function ExceptionSheet({ lesson, date, isOpen, onClose, onSave, onDelete
         new_end_time: end_time,
         new_auditorium: newRoom || null,
         new_teacher: newTeacher || null,
+        new_teacher_id: null,
       });
       onClose();
     } catch (err) {

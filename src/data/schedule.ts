@@ -3,6 +3,7 @@ export type ClassInfo = {
   time: string;
   subject: string;
   teacher: string;
+  teacherId?: string;
   auditorium: string;
   type?: string;
   
@@ -11,6 +12,7 @@ export type ClassInfo = {
   originalTime?: string;
   originalAuditorium?: string;
   originalTeacher?: string;
+  originalTeacherId?: string;
 };
 
 export type DaySchedule = {

@@ -62,15 +62,19 @@ export function MainScheduleScreen() {
         if (ex) {
           return {
             id: l.id,
-            time: (ex.new_start_time && ex.new_end_time) ? `${ex.new_start_time.slice(0,5)} - ${ex.new_end_time.slice(0,5)}` : `${l.start_time.slice(0,5)} - ${l.end_time.slice(0,5)}`,
-            originalTime: (ex.new_start_time && ex.new_end_time) ? `${l.start_time.slice(0,5)} - ${l.end_time.slice(0,5)}` : undefined,
+            time: (ex.new_start_time && ex.new_end_time) 
+              ? `${ex.new_start_time.slice(0,5)} - ${ex.new_end_time.slice(0,5)}` 
+              : `${l.start_time.slice(0,5)} - ${l.end_time.slice(0,5)}`,
             subject: l.subject,
             type: l.type_tag || '',
             teacher: ex.new_teacher || l.teacher || '',
-            originalTeacher: ex.new_teacher ? (l.teacher || '') : undefined,
+            teacherId: ex.new_teacher_id || l.teacher_id || undefined,
             auditorium: ex.new_auditorium || l.auditorium || '',
-            originalAuditorium: ex.new_auditorium ? (l.auditorium || '') : undefined,
-            isCancelled: ex.is_cancelled
+            isCancelled: ex.is_cancelled,
+            originalTime: `${l.start_time.slice(0,5)} - ${l.end_time.slice(0,5)}`,
+            originalAuditorium: l.auditorium || '',
+            originalTeacher: l.teacher || '',
+            originalTeacherId: l.teacher_id || undefined,
           };
         }
         return {
@@ -79,7 +83,8 @@ export function MainScheduleScreen() {
           subject: l.subject,
           type: l.type_tag || '',
           teacher: l.teacher || '',
-          auditorium: l.auditorium || ''
+          teacherId: l.teacher_id || undefined,
+          auditorium: l.auditorium || '',
         };
       }) as ClassInfo[]
     };
