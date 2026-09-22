@@ -70,7 +70,7 @@ export function GroupChatScreen({ onBack }: { onBack?: () => void }) {
   }
 
   return (
-    <div className="flex flex-col h-full bg-bg-main-light dark:bg-bg-main-dark">
+    <div className="flex flex-col h-full relative bg-bg-main-light dark:bg-bg-main-dark">
       {/* Chat Header */}
       <div className="bg-card-light dark:bg-card-dark border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-3 sticky top-0 z-10 shadow-sm">
         {onBack && (
@@ -95,7 +95,7 @@ export function GroupChatScreen({ onBack }: { onBack?: () => void }) {
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 pb-36 space-y-4 relative">
         {loading && messages.length === 0 ? (
           <div className="flex justify-center py-8">
             <Loader2 className="animate-spin text-primary-500" size={24} />
@@ -168,11 +168,11 @@ export function GroupChatScreen({ onBack }: { onBack?: () => void }) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
-      <div className="p-3 pb-24 bg-bg-main-light dark:bg-bg-main-dark border-t border-border-light dark:border-border-dark shadow-[0_-10px_30px_rgba(0,0,0,0.05)] dark:shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+      {/* Floating Input Area */}
+      <div className="absolute bottom-20 left-0 right-0 px-4 pb-2 pointer-events-none z-20">
         <form 
           onSubmit={handleSend}
-          className="flex items-center gap-2 bg-white dark:bg-white/10 border border-border-light dark:border-white/10 rounded-full p-1 pl-4 shadow-sm focus-within:ring-2 focus-within:ring-primary-500/50 focus-within:border-primary-500/50 transition-all"
+          className="pointer-events-auto flex items-center gap-2 bg-card-light/95 dark:bg-card-dark/95 backdrop-blur-md border border-border-light/50 dark:border-white/10 rounded-full p-1 pl-4 shadow-xl focus-within:ring-2 focus-within:ring-primary-500/50 focus-within:border-primary-500/50 transition-all"
         >
           <input
             type="text"
@@ -184,7 +184,7 @@ export function GroupChatScreen({ onBack }: { onBack?: () => void }) {
           <button
             type="submit"
             disabled={!newMessage.trim() || !roomId}
-            className="w-10 h-10 rounded-full flex items-center justify-center bg-primary-500 text-white disabled:opacity-50 disabled:bg-primary-500/50 hover:bg-primary-600 transition-colors shrink-0"
+            className="w-10 h-10 rounded-full flex items-center justify-center bg-primary-500 text-white disabled:opacity-50 disabled:bg-primary-500/50 hover:bg-primary-600 transition-colors shrink-0 shadow-md"
           >
             <Send size={18} className="ml-0.5" />
           </button>

@@ -51,7 +51,7 @@ export function ProfileScreen() {
   };
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto bg-bg-main-light dark:bg-bg-main-dark pb-24">
+    <div className="flex flex-col h-full overflow-y-auto bg-bg-main-light dark:bg-bg-main-dark">
       {/* Header */}
       <div className="bg-gradient-to-br from-primary-600 to-blue-600 text-white p-6 pt-16 pb-28 relative shadow-lg">
         <div className="absolute inset-0 bg-black/10 mix-blend-overlay"></div>
@@ -63,7 +63,7 @@ export function ProfileScreen() {
         <div className="absolute bottom-0 left-0 right-0 h-8 bg-bg-main-light dark:bg-bg-main-dark rounded-t-[32px]"></div>
       </div>
 
-      <div className="px-5 -mt-20 relative z-20">
+      <div className="px-5 -mt-20 relative z-20 pb-28">
         <form onSubmit={handleSave} className="bg-card-light dark:bg-card-dark rounded-[32px] p-6 shadow-xl border border-border-light/50 dark:border-border-dark/50 flex flex-col gap-6 backdrop-blur-sm">
           
           {/* Avatar Section */}
