@@ -126,6 +126,42 @@ export function useChatsList() {
     loadData();
   }, [loadData]);
 
+  // Realtime subscription for unread counts updates
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase.channel('chats_list_updates')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'chat_messages' },
+        (payload) => {
+          const newMessage = payload.new;
+          if (newMessage.user_id !== user.id) {
+            setChatRooms(prev => prev.map(room => {
+              if (room.id === newMessage.room_id) {
+                return { ...room, unreadCount: (room.unreadCount || 0) + 1 };
+              }
+              return room;
+            }));
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'room_read_status', filter: `user_id=eq.${user.id}` },
+        () => {
+          // Whenever the user's read status changes, we can reload or handle it
+          // For simplicity, we just reload the data to get accurate counts
+          loadData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, loadData]);
+
   const getOrCreateDirectRoom = async (targetUserId: string) => {
     if (!user) throw new Error('Not authenticated');
     

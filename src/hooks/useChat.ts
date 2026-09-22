@@ -143,16 +143,44 @@ export function useChat(roomId: string | null) {
     };
   }, [roomId, loadMessages]);
 
-  const sendMessage = async (content: string) => {
-    if (!roomId || !user || !content.trim()) return;
+  const sendMessage = async (content: string, file?: File | null) => {
+    if (!roomId || !user) return;
+    if (!content.trim() && !file) return;
 
     try {
+      let attachment_url = null;
+      let attachment_type = null;
+      let attachment_name = null;
+
+      if (file) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+        const filePath = `${roomId}/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('chat_attachments')
+          .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('chat_attachments')
+          .getPublicUrl(filePath);
+
+        attachment_url = publicUrl;
+        attachment_type = file.type.startsWith('image/') ? 'image' : 'file';
+        attachment_name = file.name;
+      }
+
       const { error: sendError } = await supabase
         .from('chat_messages')
         .insert({
           room_id: roomId,
           user_id: user.id,
           content: content.trim(),
+          attachment_url,
+          attachment_type,
+          attachment_name,
           reactions: []
         });
 

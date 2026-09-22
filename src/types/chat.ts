@@ -23,6 +23,9 @@ export interface ChatMessage {
   user_id: string;
   content: string;
   created_at: string;
+  attachment_url?: string | null;
+  attachment_type?: string | null;
+  attachment_name?: string | null;
   reactions?: Reaction[];
   profiles?: {
     full_name: string | null;

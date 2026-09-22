@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Hash, MessageSquare, Loader2, ArrowLeft, Trash2 } from 'lucide-react';
+import { Send, Hash, MessageSquare, Loader2, ArrowLeft, Trash2, Paperclip, X, FileText, Download } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useChat } from '../hooks/useChat';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -22,7 +22,11 @@ export function ChatRoomScreen() {
   const [targetAvatarColor, setTargetAvatarColor] = useState<string | null>(null);
   
   const [newMessage, setNewMessage] = useState('');
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const [isSending, setIsSending] = useState(false);
   const [activeMessageId, setActiveMessageId] = useState<string | null>(null);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { messages, loading, hasMore, sendMessage, deleteMessage, toggleReaction, loadMore, markAsRead } = useChat(roomId || null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -86,15 +90,35 @@ export function ChatRoomScreen() {
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !roomId) return;
+    if ((!newMessage.trim() && !attachment) || !roomId || isSending) return;
 
     const content = newMessage;
+    const file = attachment;
+    
     setNewMessage('');
+    setAttachment(null);
+    setIsSending(true);
+    
     try {
-      await sendMessage(content);
+      await sendMessage(content, file);
     } catch (err) {
       setNewMessage(content); // Restore on error
+      setAttachment(file);
       alert('Ошибка при отправке сообщения');
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      // Limit file size to 10MB
+      if (file.size > 10 * 1024 * 1024) {
+        alert('Файл слишком большой. Максимум 10 МБ.');
+        return;
+      }
+      setAttachment(file);
     }
   };
 
@@ -233,10 +257,55 @@ export function ChatRoomScreen() {
                         isMe 
                           ? "bg-gradient-to-br from-primary-500 to-blue-600 text-white rounded-br-sm" 
                           : "bg-card-light dark:bg-card-dark text-text-primary-light dark:text-text-primary-dark rounded-bl-sm border border-border-light/50 dark:border-white/5",
-                        isActive && "ring-2 ring-primary-500/50 scale-[0.98]"
+                        isActive && "ring-2 ring-primary-500/50 scale-[0.98]",
+                        msg.attachment_type === 'image' && !msg.content ? "p-1" : "" // smaller padding if only image
                       )}
                     >
-                      {msg.content}
+                      {msg.attachment_url && msg.attachment_type === 'image' && (
+                        <div 
+                          className={cn("relative rounded-xl overflow-hidden mb-1", msg.content ? "mt-1" : "")}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setLightboxImage(msg.attachment_url || null);
+                          }}
+                        >
+                          <img 
+                            src={msg.attachment_url} 
+                            alt="Attachment" 
+                            className="max-w-[240px] max-h-[300px] object-cover hover:opacity-90 transition-opacity"
+                            loading="lazy"
+                          />
+                        </div>
+                      )}
+                      
+                      {msg.attachment_url && msg.attachment_type === 'file' && (
+                        <a 
+                          href={msg.attachment_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className={cn(
+                            "flex items-center gap-3 p-3 rounded-xl mb-1 transition-colors",
+                            isMe ? "bg-black/10 hover:bg-black/20" : "bg-bg-main-light dark:bg-bg-main-dark hover:bg-black/5 dark:hover:bg-white/5 border border-border-light/50 dark:border-white/5"
+                          )}
+                        >
+                          <div className={cn(
+                            "w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0",
+                            isMe ? "bg-white/20 text-white" : "bg-primary-50 dark:bg-primary-900/30 text-primary-500"
+                          )}>
+                            <FileText size={20} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={cn("text-sm font-medium truncate", isMe ? "text-white" : "text-text-primary-light dark:text-text-primary-dark")}>
+                              {msg.attachment_name || 'Файл'}
+                            </p>
+                          </div>
+                          <Download size={18} className={isMe ? "text-white/70" : "text-text-secondary-light dark:text-text-secondary-dark"} />
+                        </a>
+                      )}
+
+                      {msg.content && <div>{msg.content}</div>}
+                      
                       <div className={cn(
                         "text-[10px] mt-1 opacity-70",
                         isMe ? "text-right text-white/80" : "text-right"
@@ -322,11 +391,67 @@ export function ChatRoomScreen() {
       </div>
 
       {/* Input Area */}
-      <div className="flex-shrink-0 px-4 py-3 pb-safe relative z-20 flex justify-center bg-bg-main-light/50 dark:bg-bg-main-dark/50 backdrop-blur-md border-t border-border-light/50 dark:border-white/5">
+      <div className="flex-shrink-0 px-4 py-3 pb-safe relative z-20 flex flex-col items-center bg-bg-main-light/50 dark:bg-bg-main-dark/50 backdrop-blur-md border-t border-border-light/50 dark:border-white/5">
+        
+        {/* Attachment Preview */}
+        <AnimatePresence>
+          {attachment && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10, height: 0 }}
+              animate={{ opacity: 1, y: 0, height: 'auto' }}
+              exit={{ opacity: 0, y: 10, height: 0 }}
+              className="w-full max-w-lg mb-3"
+            >
+              <div className="relative inline-flex items-center gap-3 bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark p-2 pr-4 rounded-xl shadow-sm">
+                <button 
+                  onClick={() => setAttachment(null)}
+                  className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-transform"
+                >
+                  <X size={14} />
+                </button>
+                
+                {attachment.type.startsWith('image/') ? (
+                  <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                    <img src={URL.createObjectURL(attachment)} alt="Preview" className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="w-12 h-12 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-500 flex items-center justify-center flex-shrink-0">
+                    <FileText size={24} />
+                  </div>
+                )}
+                
+                <div className="flex-1 min-w-0 max-w-[200px]">
+                  <p className="text-sm font-medium text-text-primary-light dark:text-text-primary-dark truncate">
+                    {attachment.name}
+                  </p>
+                  <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
+                    {(attachment.size / 1024 / 1024).toFixed(2)} MB
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <form 
           onSubmit={handleSend}
-          className="w-full max-w-lg pointer-events-auto flex items-center gap-2 bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-full p-1 pl-4 shadow-sm focus-within:ring-2 focus-within:ring-primary-500/50 focus-within:border-primary-500/50 transition-all"
+          className="w-full max-w-lg pointer-events-auto flex items-center gap-2 bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-full p-1 pl-2 shadow-sm focus-within:ring-2 focus-within:ring-primary-500/50 focus-within:border-primary-500/50 transition-all"
         >
+          <input 
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            onChange={handleFileChange}
+            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-text-secondary-light dark:text-text-secondary-dark hover:bg-black/5 dark:hover:bg-white/5 transition-colors shrink-0"
+          >
+            <Paperclip size={20} />
+          </button>
+          
           <input
             type="text"
             value={newMessage}
@@ -334,15 +459,48 @@ export function ChatRoomScreen() {
             placeholder="Сообщение..."
             className="flex-1 bg-transparent border-none focus:outline-none text-text-primary-light dark:text-text-primary-dark placeholder:text-text-secondary-light dark:placeholder:text-text-secondary-dark"
           />
+          
           <button
             type="submit"
-            disabled={!newMessage.trim() || !roomId}
-            className="w-10 h-10 rounded-full flex items-center justify-center bg-primary-500 text-white disabled:opacity-50 disabled:bg-primary-500/50 hover:bg-primary-600 transition-colors shrink-0 shadow-md"
+            disabled={(!newMessage.trim() && !attachment) || !roomId || isSending}
+            className="w-10 h-10 rounded-full flex items-center justify-center bg-primary-500 text-white disabled:opacity-50 disabled:bg-primary-500/50 hover:bg-primary-600 transition-colors shrink-0 shadow-md relative overflow-hidden"
           >
-            <Send size={18} className="ml-0.5" />
+            {isSending ? (
+              <Loader2 size={18} className="animate-spin" />
+            ) : (
+              <Send size={18} className="ml-0.5" />
+            )}
           </button>
         </form>
       </div>
+
+      {/* Lightbox Overlay */}
+      <AnimatePresence>
+        {lightboxImage && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setLightboxImage(null)}
+            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 cursor-pointer"
+          >
+            <button 
+              className="absolute top-6 right-6 text-white/70 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors"
+              onClick={() => setLightboxImage(null)}
+            >
+              <X size={24} />
+            </button>
+            <motion.img 
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              src={lightboxImage} 
+              alt="Fullscreen Preview" 
+              className="max-w-full max-h-full object-contain rounded-lg"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
