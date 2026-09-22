@@ -112,7 +112,7 @@ export function LandscapeClockScreen() {
         </motion.div>
 
         {/* Big Clock */}
-        <motion.div layout className={cn("flex items-end gap-3 mb-10", !sidebarOpen && "justify-center")}>
+        <motion.div layout className={cn("flex items-baseline gap-3 mb-10", !sidebarOpen && "justify-center")}>
           <span className="text-[140px] leading-[0.8] font-black tracking-tight tabular-nums drop-shadow-2xl text-white">
             {timeString}
           </span>
@@ -144,11 +144,11 @@ export function LandscapeClockScreen() {
                 <div className="flex justify-between items-start mb-6">
                   <div className="bg-primary-500/20 text-primary-300 px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-widest border border-primary-500/30 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-primary-400 animate-pulse" />
-                    {t('ui.lessonNow')}
+                    {t('ui.currentLesson')}
                   </div>
                   <div className="text-right">
                     <div className="text-4xl font-black text-white leading-none tracking-tight">
-                      {currentLesson.minutesLeft} <span className="text-2xl text-white/50">{t('ui.statsMinutes')}</span>
+                      {currentLesson.minutesLeft} <span className="text-2xl text-white/50">{t('ui.minutesShort')}</span>
                     </div>
                   </div>
                 </div>
@@ -167,12 +167,12 @@ export function LandscapeClockScreen() {
                   {currentLesson.teacher && (
                     <div className="flex items-center gap-3">
                       <div 
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-inner border border-white/10"
+                        className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-sm font-bold text-white shadow-inner border border-white/10"
                         style={{ backgroundColor: stringToColor(currentLesson.teacher) }}
                       >
                         {currentLesson.teacher.substring(0, 2)}
                       </div>
-                      <span className="font-semibold text-lg line-clamp-1">{currentLesson.teacher}</span>
+                      <span className="font-semibold text-lg truncate">{currentLesson.teacher}</span>
                     </div>
                   )}
                 </div>
@@ -190,7 +190,7 @@ export function LandscapeClockScreen() {
                   <span>{t('ui.break')}</span>
                 </div>
                 <div className="text-4xl font-black mb-3 tracking-tight">
-                  До пары <span className="text-cyan-400">{minutesToNext} {t('ui.statsMinutes')}</span>
+                  До пары <span className="text-cyan-400">{minutesToNext} {t('ui.minutesShort')}</span>
                 </div>
                 <div className="text-xl text-white/60 font-medium flex items-center gap-3">
                   Далее: <span className="text-white/90">{nextLesson.subject}</span>
@@ -271,7 +271,7 @@ export function LandscapeClockScreen() {
                   <div 
                     key={idx}
                     className={cn(
-                      "p-5 rounded-2xl border transition-all duration-300 relative overflow-hidden",
+                      "p-5 rounded-2xl border transition-all duration-300 relative overflow-hidden shrink-0",
                       isCurrent 
                         ? "bg-primary-500/10 border-primary-500/30 shadow-[0_0_20px_rgba(59,130,246,0.1)]" 
                         : isPast
