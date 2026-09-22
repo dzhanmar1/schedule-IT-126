@@ -13,9 +13,11 @@ import { AnimatePresence } from 'framer-motion';
 import { PageTransition } from './components/PageTransition';
 import { useOrientation } from './hooks/useOrientation';
 import { LandscapeClockScreen } from './components/LandscapeClockScreen';
+import { GroupChatScreen } from './screens/GroupChatScreen';
+import { ProfileScreen } from './screens/ProfileScreen';
 
 // Routes that show the bottom navigation
-const NAV_ROUTES = ['/', '/week', '/stats'];
+const NAV_ROUTES = ['/', '/week', '/stats', '/chat', '/profile'];
 
 export default function App() {
   const { session, profile, isLoading } = useAuth();
@@ -80,6 +82,8 @@ export default function App() {
           <Route path="/" element={<PageTransition><MainScheduleScreen /></PageTransition>} />
           <Route path="/week" element={<PageTransition><WeekViewScreen /></PageTransition>} />
           <Route path="/stats" element={<PageTransition><StatsScreen /></PageTransition>} />
+          <Route path="/chat" element={<PageTransition><GroupChatScreen /></PageTransition>} />
+          <Route path="/profile" element={<PageTransition><ProfileScreen /></PageTransition>} />
           <Route path="/dashboard" element={<PageTransition><AdminDashboardScreen /></PageTransition>} />
           <Route path="/schedule-editor" element={<PageTransition><ScheduleEditorScreen /></PageTransition>} />
           <Route path="*" element={<Navigate to="/" replace />} />

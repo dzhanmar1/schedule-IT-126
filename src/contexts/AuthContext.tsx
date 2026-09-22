@@ -13,6 +13,8 @@ interface Profile {
   groups?: { name: string } | null;
   personal_invite_code?: string;
   invited_by?: string | null;
+  bio?: string | null;
+  avatar_color?: string | null;
 }
 
 interface AuthContextType {
