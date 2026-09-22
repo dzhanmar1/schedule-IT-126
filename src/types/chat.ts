@@ -11,6 +11,12 @@ export interface Reaction {
   emoji: string;
 }
 
+export interface ChatParticipant {
+  id: string;
+  room_id: string;
+  user_id: string;
+}
+
 export interface ChatMessage {
   id: string;
   room_id: string;

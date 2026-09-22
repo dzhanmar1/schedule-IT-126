@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { CalendarDays, BarChart3, LayoutGrid, MessageSquare, User } from 'lucide-react';
+import { CalendarDays, LayoutGrid, MessageSquare, User, BookOpen } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../i18n';
 import { cn } from '../utils/cn';
@@ -11,9 +11,9 @@ export function BottomNav() {
 
   const tabs = [
     { path: '/', icon: CalendarDays, label: t('ui.navSchedule') },
+    { path: '/homework', icon: BookOpen, label: 'Домашка' },
     { path: '/week', icon: LayoutGrid, label: t('ui.navWeek') },
     { path: '/chat', icon: MessageSquare, label: 'Чат' },
-    { path: '/stats', icon: BarChart3, label: t('ui.navStats') },
     { path: '/profile', icon: User, label: 'Профиль' },
   ];
 

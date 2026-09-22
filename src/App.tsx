@@ -11,13 +11,15 @@ import { BottomNav } from './components/BottomNav';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { PageTransition } from './components/PageTransition';
+import { ChatRoomScreen } from './screens/ChatRoomScreen';
+import { ChatsListScreen } from './screens/ChatsListScreen';
+import { ProfileScreen } from './screens/ProfileScreen';
+import { HomeworkScreen } from './screens/HomeworkScreen';
 import { useOrientation } from './hooks/useOrientation';
 import { LandscapeClockScreen } from './components/LandscapeClockScreen';
-import { GroupChatScreen } from './screens/GroupChatScreen';
-import { ProfileScreen } from './screens/ProfileScreen';
 
 // Routes that show the bottom navigation
-const NAV_ROUTES = ['/', '/week', '/stats', '/chat', '/profile'];
+const NAV_ROUTES = ['/', '/week', '/chat', '/profile', '/homework'];
 
 export default function App() {
   const { session, profile, isLoading } = useAuth();
@@ -82,7 +84,9 @@ export default function App() {
           <Route path="/" element={<PageTransition><MainScheduleScreen /></PageTransition>} />
           <Route path="/week" element={<PageTransition><WeekViewScreen /></PageTransition>} />
           <Route path="/stats" element={<PageTransition><StatsScreen /></PageTransition>} />
-          <Route path="/chat" element={<PageTransition><GroupChatScreen /></PageTransition>} />
+          <Route path="/homework" element={<PageTransition><HomeworkScreen /></PageTransition>} />
+          <Route path="/chat" element={<PageTransition><ChatsListScreen /></PageTransition>} />
+          <Route path="/chat/:roomId" element={<PageTransition><ChatRoomScreen /></PageTransition>} />
           <Route path="/profile" element={<PageTransition><ProfileScreen /></PageTransition>} />
           <Route path="/dashboard" element={<PageTransition><AdminDashboardScreen /></PageTransition>} />
           <Route path="/schedule-editor" element={<PageTransition><ScheduleEditorScreen /></PageTransition>} />

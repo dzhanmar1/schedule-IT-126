@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Hash, MessageSquare, Loader2, ArrowLeft, Trash2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useChat } from '../hooks/useChat';
+import { useParams, useNavigate } from 'react-router-dom';
 
 import { format } from 'date-fns';
 import { supabase } from '../lib/supabase';
@@ -11,36 +12,52 @@ import { cn } from '../utils/cn';
 
 const EMOJIS = ['👍', '❤️', '😂', '😢', '🔥'];
 
-export function GroupChatScreen({ onBack }: { onBack?: () => void }) {
-  const { user, profile } = useAuth();
-  const [roomId, setRoomId] = useState<string | null>(null);
-  const [roomName, setRoomName] = useState<string>('Общий чат');
+export function ChatRoomScreen() {
+  const { roomId } = useParams<{ roomId: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  const [roomName, setRoomName] = useState<string>('Чат');
+  const [roomType, setRoomType] = useState<'group' | 'direct'>('group');
+  const [targetAvatarColor, setTargetAvatarColor] = useState<string | null>(null);
+  
   const [newMessage, setNewMessage] = useState('');
   const [activeMessageId, setActiveMessageId] = useState<string | null>(null);
   
-  const { messages, loading, sendMessage, deleteMessage, toggleReaction } = useChat(roomId);
+  const { messages, loading, sendMessage, deleteMessage, toggleReaction } = useChat(roomId || null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Fetch the user's group chat room
+  // Fetch room details
   useEffect(() => {
-    if (!profile?.group_id) return;
+    if (!roomId) return;
 
     async function fetchRoom() {
-      const { data } = await supabase
+      const { data: room, error } = await supabase
         .from('chat_rooms')
-        .select('*')
-        .eq('group_id', profile?.group_id)
-        .eq('type', 'group')
+        .select('*, chat_participants(user_id, profiles(full_name, avatar_color))')
+        .eq('id', roomId)
         .single();
 
-      if (data) {
-        setRoomId(data.id);
-        setRoomName(`Общий чат ${profile?.groups?.name || ''}`);
+      if (room && !error) {
+        setRoomType(room.type);
+        if (room.type === 'group') {
+          setRoomName(room.name);
+        } else {
+          // It's a direct room, find the other participant
+          const otherParticipant = room.chat_participants?.find((p: any) => p.user_id !== user?.id);
+          const otherProfile = otherParticipant?.profiles;
+          if (otherProfile) {
+            setRoomName(otherProfile.full_name || 'Студент');
+            setTargetAvatarColor(otherProfile.avatar_color);
+          } else {
+            setRoomName('Чат с удаленным пользователем');
+          }
+        }
       }
     }
 
     fetchRoom();
-  }, [profile?.group_id, profile?.groups?.name]);
+  }, [roomId, user?.id]);
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -83,23 +100,32 @@ export function GroupChatScreen({ onBack }: { onBack?: () => void }) {
       
       {/* Chat Header */}
       <div className="bg-card-light/80 dark:bg-card-dark/80 backdrop-blur-xl border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-3 sticky top-0 z-30 shadow-sm">
-        {onBack && (
-          <button 
-            onClick={onBack}
-            className="p-2 -ml-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-text-secondary-light dark:text-text-secondary-dark"
+        <button 
+          onClick={() => navigate('/chat')}
+          className="p-2 -ml-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-text-secondary-light dark:text-text-secondary-dark"
+        >
+          <ArrowLeft size={20} />
+        </button>
+        
+        {roomType === 'group' ? (
+          <div className="w-10 h-10 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400">
+            <Hash size={20} />
+          </div>
+        ) : (
+          <div 
+            className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-sm"
+            style={{ backgroundColor: targetAvatarColor || stringToColor(roomName) }}
           >
-            <ArrowLeft size={20} />
-          </button>
+            {roomName.substring(0, 2).toUpperCase()}
+          </div>
         )}
-        <div className="w-10 h-10 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400">
-          <Hash size={20} />
-        </div>
+        
         <div className="flex-1 min-w-0">
           <h2 className="font-bold text-text-primary-light dark:text-text-primary-dark truncate">
             {roomName}
           </h2>
           <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark truncate">
-            Группа {profile?.groups?.name || '...'}
+            {roomType === 'group' ? 'Общий чат' : 'Личные сообщения'}
           </p>
         </div>
       </div>
@@ -107,7 +133,7 @@ export function GroupChatScreen({ onBack }: { onBack?: () => void }) {
       {/* Messages Area */}
       <div 
         className="flex-1 overflow-y-auto p-4 pb-36 space-y-4 relative z-10"
-        onClick={() => setActiveMessageId(null)} // Close menus on click outside
+        onClick={() => setActiveMessageId(null)}
       >
         {loading && messages.length === 0 ? (
           <div className="flex justify-center py-8">
@@ -121,7 +147,7 @@ export function GroupChatScreen({ onBack }: { onBack?: () => void }) {
         ) : (
           messages.map((msg, idx) => {
             const isMe = msg.user_id === user?.id;
-            const showAvatar = !isMe && (idx === 0 || messages[idx - 1].user_id !== msg.user_id);
+            const showAvatar = !isMe && (idx === 0 || messages[idx - 1].user_id !== msg.user_id) && roomType === 'group';
             const senderName = msg.profiles?.full_name || 'Студент';
             const avatarColor = msg.profiles?.avatar_color || stringToColor(msg.user_id);
 
@@ -145,7 +171,7 @@ export function GroupChatScreen({ onBack }: { onBack?: () => void }) {
                   isMe ? "ml-auto flex-row-reverse" : ""
                 )}
               >
-                {!isMe && (
+                {!isMe && roomType === 'group' && (
                   <div className="w-8 flex-shrink-0 flex flex-col justify-end pb-4">
                     {showAvatar && (
                       <div 
@@ -162,14 +188,13 @@ export function GroupChatScreen({ onBack }: { onBack?: () => void }) {
                   "flex flex-col",
                   isMe ? "items-end" : "items-start"
                 )}>
-                  {!isMe && showAvatar && (
+                  {!isMe && showAvatar && roomType === 'group' && (
                     <span className="text-xs text-text-secondary-light dark:text-text-secondary-dark ml-1 mb-1 font-medium">
                       {senderName}
                     </span>
                   )}
                   
                   <div className="relative group">
-                    {/* The Message Bubble */}
                     <div 
                       onClick={(e) => {
                         e.stopPropagation();
@@ -192,7 +217,6 @@ export function GroupChatScreen({ onBack }: { onBack?: () => void }) {
                       </div>
                     </div>
 
-                    {/* Reactions Display */}
                     {Object.keys(reactionsMap).length > 0 && (
                       <div className={cn(
                         "flex flex-wrap gap-1 mt-1",
@@ -222,7 +246,6 @@ export function GroupChatScreen({ onBack }: { onBack?: () => void }) {
                       </div>
                     )}
 
-                    {/* Action Menu (Context) */}
                     <AnimatePresence>
                       {isActive && (
                         <motion.div 
