@@ -24,8 +24,9 @@ export function ChatRoomScreen() {
   const [newMessage, setNewMessage] = useState('');
   const [activeMessageId, setActiveMessageId] = useState<string | null>(null);
   
-  const { messages, loading, sendMessage, deleteMessage, toggleReaction } = useChat(roomId || null);
+  const { messages, loading, hasMore, sendMessage, deleteMessage, toggleReaction, loadMore, markAsRead } = useChat(roomId || null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Fetch room details
   useEffect(() => {
@@ -59,10 +60,29 @@ export function ChatRoomScreen() {
     fetchRoom();
   }, [roomId, user?.id]);
 
-  // Scroll to bottom on new messages
+  const prevLastMessageIdRef = useRef<string | null>(null);
+
+  // Scroll to bottom on new messages (but not on pagination)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage && lastMessage.id !== prevLastMessageIdRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+    prevLastMessageIdRef.current = lastMessage?.id || null;
   }, [messages]);
+
+  // Mark as read whenever messages change
+  useEffect(() => {
+    if (messages.length > 0) {
+      markAsRead();
+    }
+  }, [messages, markAsRead]);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (e.currentTarget.scrollTop === 0 && hasMore && !loading) {
+      loadMore();
+    }
+  };
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,9 +152,17 @@ export function ChatRoomScreen() {
 
       {/* Messages Area */}
       <div 
+        ref={containerRef}
+        onScroll={handleScroll}
         className="flex-1 overflow-y-auto p-4 space-y-4 relative z-10"
         onClick={() => setActiveMessageId(null)}
       >
+        {loading && hasMore && (
+          <div className="flex justify-center py-4">
+            <Loader2 className="animate-spin text-primary-500" size={24} />
+          </div>
+        )}
+        
         {loading && messages.length === 0 ? (
           <div className="flex justify-center py-8">
             <Loader2 className="animate-spin text-primary-500" size={24} />

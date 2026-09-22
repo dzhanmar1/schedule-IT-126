@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 export function useChat(roomId: string | null) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
@@ -26,11 +27,14 @@ export function useChat(roomId: string | null) {
           )
         `)
         .eq('room_id', roomId)
-        .order('created_at', { ascending: true })
-        .limit(100);
+        .order('created_at', { ascending: false }) // Fetch newest first to paginate backwards
+        .limit(30);
 
       if (fetchError) throw fetchError;
-      setMessages(data as ChatMessage[] || []);
+      
+      const fetchedMessages = (data as ChatMessage[] || []).reverse();
+      setMessages(fetchedMessages);
+      setHasMore(fetchedMessages.length === 30);
     } catch (err: any) {
       console.error('Error loading messages:', err);
       setError(err.message);
@@ -38,6 +42,56 @@ export function useChat(roomId: string | null) {
       setLoading(false);
     }
   }, [roomId]);
+
+  const loadMore = async () => {
+    if (!roomId || loading || !hasMore || messages.length === 0) return;
+    
+    setLoading(true);
+    try {
+      const oldestMessage = messages[0];
+      const { data, error: fetchError } = await supabase
+        .from('chat_messages')
+        .select(`
+          *,
+          profiles (
+            full_name,
+            avatar_color
+          )
+        `)
+        .eq('room_id', roomId)
+        .lt('created_at', oldestMessage.created_at)
+        .order('created_at', { ascending: false })
+        .limit(30);
+
+      if (fetchError) throw fetchError;
+      
+      const olderMessages = (data as ChatMessage[] || []).reverse();
+      setMessages(prev => [...olderMessages, ...prev]);
+      setHasMore(olderMessages.length === 30);
+    } catch (err: any) {
+      console.error('Error loading more messages:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const markAsRead = useCallback(async () => {
+    if (!roomId || !user) return;
+    try {
+      await supabase
+        .from('room_read_status')
+        .upsert(
+          { 
+            room_id: roomId, 
+            user_id: user.id, 
+            last_read_at: new Date().toISOString() 
+          },
+          { onConflict: 'room_id,user_id' }
+        );
+    } catch (err) {
+      console.error('Error marking room as read:', err);
+    }
+  }, [roomId, user]);
 
   // Subscribe to new messages, updates, and deletes
   useEffect(() => {
@@ -161,9 +215,12 @@ export function useChat(roomId: string | null) {
     messages,
     loading,
     error,
+    hasMore,
     sendMessage,
     deleteMessage,
     toggleReaction,
+    loadMore,
+    markAsRead,
     loadMessages
   };
 }

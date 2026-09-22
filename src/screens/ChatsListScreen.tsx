@@ -94,6 +94,12 @@ export function ChatsListScreen() {
                           {room.type === 'group' ? 'Чат группы' : 'Личные сообщения'}
                         </p>
                       </div>
+                      
+                      {room.unreadCount !== undefined && room.unreadCount > 0 && (
+                        <div className="flex-shrink-0 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">
+                          {room.unreadCount > 99 ? '99+' : room.unreadCount}
+                        </div>
+                      )}
                     </motion.div>
                   ))}
                 </div>

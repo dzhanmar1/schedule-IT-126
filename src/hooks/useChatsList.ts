@@ -15,6 +15,7 @@ export interface ChatListItem {
   type: 'group' | 'direct';
   targetUserId?: string; // For direct chats
   avatarColor?: string | null;
+  unreadCount?: number;
 }
 
 export function useChatsList() {
@@ -72,6 +73,17 @@ export function useChatsList() {
       
       setClassmates(classmatesData || []);
 
+      // 4. Load Unread Counts
+      const { data: unreadData, error: unreadError } = await supabase
+        .rpc('get_unread_counts', { p_user_id: user.id });
+
+      const unreadMap = new Map();
+      if (!unreadError && unreadData) {
+        unreadData.forEach((item: any) => {
+          unreadMap.set(item.room_id, item.unread_count);
+        });
+      }
+
       // Format Chat Rooms
       const formattedRooms: ChatListItem[] = [];
       
@@ -81,6 +93,7 @@ export function useChatsList() {
           id: room.id,
           name: room.name,
           type: 'group',
+          unreadCount: unreadMap.get(room.id) || 0
         });
       });
       
@@ -95,7 +108,8 @@ export function useChatsList() {
           name: otherProfile?.full_name || 'Студент',
           type: 'direct',
           targetUserId: otherParticipant?.user_id,
-          avatarColor: otherProfile?.avatar_color
+          avatarColor: otherProfile?.avatar_color,
+          unreadCount: unreadMap.get(room.id) || 0
         });
       });
 

@@ -12,6 +12,7 @@ export function HomeworkScreen() {
   const { profile } = useAuth();
   const [activeTab, setActiveTab] = useState<'group' | 'personal'>('group');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // New task form state
   const [newSubject, setNewSubject] = useState('');
@@ -29,14 +30,19 @@ export function HomeworkScreen() {
 
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newSubject.trim() || !newDesc.trim()) return;
+    if (!newSubject.trim() || !newDesc.trim() || isSubmitting) return;
     
-    await addTask(newSubject, newDesc, newDate || null, isGroupTask);
-    setShowAddModal(false);
-    setNewSubject('');
-    setNewDesc('');
-    setNewDate('');
-    setIsGroupTask(false);
+    setIsSubmitting(true);
+    try {
+      await addTask(newSubject, newDesc, newDate || null, isGroupTask);
+      setShowAddModal(false);
+      setNewSubject('');
+      setNewDesc('');
+      setNewDate('');
+      setIsGroupTask(false);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const getDueDateLabel = (dateStr: string | null) => {
@@ -254,9 +260,10 @@ export function HomeworkScreen() {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-3 rounded-xl font-bold bg-primary-500 hover:bg-primary-600 text-white shadow-lg shadow-primary-500/30 transition-colors"
+                    disabled={isSubmitting}
+                    className="flex-1 py-3 rounded-xl font-bold bg-primary-500 hover:bg-primary-600 text-white shadow-lg shadow-primary-500/30 transition-colors disabled:opacity-50 flex items-center justify-center"
                   >
-                    Добавить
+                    {isSubmitting ? 'Добавление...' : 'Добавить'}
                   </button>
                 </div>
               </form>
