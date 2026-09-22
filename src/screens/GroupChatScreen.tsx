@@ -71,8 +71,14 @@ export function GroupChatScreen({ onBack }: { onBack?: () => void }) {
 
   return (
     <div className="flex flex-col h-full relative bg-bg-main-light dark:bg-bg-main-dark">
+      {/* Cool animated background gradient */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary-500/10 rounded-full blur-[80px]"></div>
+        <div className="absolute top-1/2 -left-20 w-60 h-60 bg-blue-500/10 rounded-full blur-[60px]"></div>
+      </div>
+      
       {/* Chat Header */}
-      <div className="bg-card-light dark:bg-card-dark border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-3 sticky top-0 z-10 shadow-sm">
+      <div className="bg-card-light/80 dark:bg-card-dark/80 backdrop-blur-xl border-b border-border-light dark:border-border-dark px-4 py-3 flex items-center gap-3 sticky top-0 z-10 shadow-sm">
         {onBack && (
           <button 
             onClick={onBack}
@@ -114,8 +120,9 @@ export function GroupChatScreen({ onBack }: { onBack?: () => void }) {
 
             return (
               <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
                 key={msg.id} 
                 className={cn(
                   "flex gap-3 max-w-[85%]",
@@ -146,10 +153,10 @@ export function GroupChatScreen({ onBack }: { onBack?: () => void }) {
                   )}
                   <div 
                     className={cn(
-                      "px-4 py-2.5 rounded-2xl relative shadow-sm text-[15px] leading-relaxed break-words",
+                      "px-4 py-2.5 rounded-2xl relative shadow-md text-[15px] leading-relaxed break-words",
                       isMe 
-                        ? "bg-primary-500 text-white rounded-br-sm" 
-                        : "bg-card-light dark:bg-card-dark text-text-primary-light dark:text-text-primary-dark rounded-bl-sm border border-border-light dark:border-border-dark"
+                        ? "bg-gradient-to-br from-primary-500 to-blue-600 text-white rounded-br-sm" 
+                        : "bg-card-light dark:bg-card-dark text-text-primary-light dark:text-text-primary-dark rounded-bl-sm border border-border-light/50 dark:border-white/5"
                     )}
                   >
                     {msg.content}
@@ -169,10 +176,10 @@ export function GroupChatScreen({ onBack }: { onBack?: () => void }) {
       </div>
 
       {/* Floating Input Area */}
-      <div className="absolute bottom-20 left-0 right-0 px-4 pb-2 pointer-events-none z-20">
+      <div className="fixed bottom-20 left-0 right-0 px-4 pb-2 pointer-events-none z-20 flex justify-center">
         <form 
           onSubmit={handleSend}
-          className="pointer-events-auto flex items-center gap-2 bg-card-light/95 dark:bg-card-dark/95 backdrop-blur-md border border-border-light/50 dark:border-white/10 rounded-full p-1 pl-4 shadow-xl focus-within:ring-2 focus-within:ring-primary-500/50 focus-within:border-primary-500/50 transition-all"
+          className="w-full max-w-lg pointer-events-auto flex items-center gap-2 bg-card-light/95 dark:bg-card-dark/95 backdrop-blur-md border border-border-light/50 dark:border-white/10 rounded-full p-1 pl-4 shadow-xl focus-within:ring-2 focus-within:ring-primary-500/50 focus-within:border-primary-500/50 transition-all"
         >
           <input
             type="text"
