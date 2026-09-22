@@ -53,39 +53,50 @@ export function ProfileScreen() {
   return (
     <div className="flex flex-col h-full overflow-y-auto bg-bg-main-light dark:bg-bg-main-dark pb-24">
       {/* Header */}
-      <div className="bg-primary-500 text-white p-6 pt-12 pb-24 relative rounded-b-[40px] shadow-lg">
-        <h1 className="text-3xl font-black mb-2">Профиль</h1>
-        <p className="opacity-80">Настройте свой внешний вид</p>
+      <div className="bg-gradient-to-br from-primary-600 to-blue-600 text-white p-6 pt-16 pb-28 relative shadow-lg">
+        <div className="absolute inset-0 bg-black/10 mix-blend-overlay"></div>
+        <div className="relative z-10">
+          <h1 className="text-3xl font-black mb-1">Профиль</h1>
+          <p className="opacity-80 text-sm">Настройте свой внешний вид</p>
+        </div>
+        {/* Decorative curve at the bottom */}
+        <div className="absolute bottom-0 left-0 right-0 h-8 bg-bg-main-light dark:bg-bg-main-dark rounded-t-[32px]"></div>
       </div>
 
-      <div className="px-6 -mt-16">
-        <form onSubmit={handleSave} className="bg-card-light dark:bg-card-dark rounded-3xl p-6 shadow-xl border border-border-light dark:border-border-dark flex flex-col gap-6">
+      <div className="px-5 -mt-20 relative z-20">
+        <form onSubmit={handleSave} className="bg-card-light dark:bg-card-dark rounded-[32px] p-6 shadow-xl border border-border-light/50 dark:border-border-dark/50 flex flex-col gap-6 backdrop-blur-sm">
           
           {/* Avatar Section */}
           <div className="flex flex-col items-center">
             <div 
-              className="w-24 h-24 rounded-full flex items-center justify-center text-4xl font-black text-white shadow-lg mb-4 border-4 border-card-light dark:border-card-dark"
+              className="w-28 h-28 rounded-full flex items-center justify-center text-5xl font-black text-white shadow-lg mb-6 border-4 border-card-light dark:border-card-dark transition-all duration-300"
               style={{ backgroundColor: avatarColor }}
             >
-              {fullName ? fullName.substring(0, 2).toUpperCase() : <User size={40} />}
+              {fullName ? fullName.substring(0, 2).toUpperCase() : <User size={48} />}
             </div>
             
             <div className="w-full">
               <label className="text-sm font-bold text-text-secondary-light dark:text-text-secondary-dark flex items-center gap-2 mb-3">
                 <Palette size={16} /> Цвет аватара
               </label>
-              <div className="flex flex-wrap gap-2 justify-center">
+              <div className="flex flex-wrap gap-3 justify-center px-2">
                 {COLORS.map(color => (
                   <button
                     key={color}
                     type="button"
                     onClick={() => setAvatarColor(color)}
-                    className="w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 focus:outline-none"
+                    className="w-9 h-9 rounded-full transition-transform hover:scale-110 focus:outline-none relative"
                     style={{ 
                       backgroundColor: color,
-                      borderColor: avatarColor === color ? 'var(--color-text-primary-light)' : 'transparent' 
                     }}
-                  />
+                  >
+                    {avatarColor === color && (
+                      <div className="absolute inset-0 rounded-full border-2 border-white dark:border-black mix-blend-overlay shadow-inner"></div>
+                    )}
+                    {avatarColor === color && (
+                      <div className="absolute -inset-1 rounded-full border border-current opacity-50" style={{ borderColor: color }}></div>
+                    )}
+                  </button>
                 ))}
               </div>
             </div>

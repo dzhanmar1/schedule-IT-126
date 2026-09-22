@@ -169,10 +169,10 @@ export function GroupChatScreen({ onBack }: { onBack?: () => void }) {
       </div>
 
       {/* Input Area */}
-      <div className="p-3 bg-bg-main-light dark:bg-bg-main-dark border-t border-border-light dark:border-border-dark">
+      <div className="p-3 pb-24 bg-bg-main-light dark:bg-bg-main-dark border-t border-border-light dark:border-border-dark shadow-[0_-10px_30px_rgba(0,0,0,0.05)] dark:shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
         <form 
           onSubmit={handleSend}
-          className="flex items-center gap-2 bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-full p-1 pl-4 shadow-sm focus-within:ring-2 focus-within:ring-primary-500/50 transition-all"
+          className="flex items-center gap-2 bg-white dark:bg-white/10 border border-border-light dark:border-white/10 rounded-full p-1 pl-4 shadow-sm focus-within:ring-2 focus-within:ring-primary-500/50 focus-within:border-primary-500/50 transition-all"
         >
           <input
             type="text"
