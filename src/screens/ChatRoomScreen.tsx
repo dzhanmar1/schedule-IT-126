@@ -91,7 +91,7 @@ export function ChatRoomScreen() {
   };
 
   return (
-    <div className="flex flex-col min-h-[100dvh] relative bg-bg-main-light dark:bg-bg-main-dark pb-[80px]">
+    <div className="flex flex-col h-[100dvh] relative bg-bg-main-light dark:bg-bg-main-dark">
       {/* Cool animated background gradient */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary-500/10 rounded-full blur-[80px]"></div>
@@ -132,7 +132,7 @@ export function ChatRoomScreen() {
 
       {/* Messages Area */}
       <div 
-        className="flex-1 overflow-y-auto p-4 pb-36 space-y-4 relative z-10"
+        className="flex-1 overflow-y-auto p-4 space-y-4 relative z-10"
         onClick={() => setActiveMessageId(null)}
       >
         {loading && messages.length === 0 ? (
@@ -293,11 +293,11 @@ export function ChatRoomScreen() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Floating Input Area */}
-      <div className="fixed bottom-[80px] left-0 right-0 px-4 pb-2 pointer-events-none z-20 flex justify-center">
+      {/* Input Area */}
+      <div className="flex-shrink-0 px-4 py-3 pb-safe relative z-20 flex justify-center bg-bg-main-light/50 dark:bg-bg-main-dark/50 backdrop-blur-md border-t border-border-light/50 dark:border-white/5">
         <form 
           onSubmit={handleSend}
-          className="w-full max-w-lg pointer-events-auto flex items-center gap-2 bg-card-light/95 dark:bg-card-dark/95 backdrop-blur-md border border-border-light/50 dark:border-white/10 rounded-full p-1 pl-4 shadow-xl focus-within:ring-2 focus-within:ring-primary-500/50 focus-within:border-primary-500/50 transition-all"
+          className="w-full max-w-lg pointer-events-auto flex items-center gap-2 bg-card-light dark:bg-card-dark border border-border-light dark:border-border-dark rounded-full p-1 pl-4 shadow-sm focus-within:ring-2 focus-within:ring-primary-500/50 focus-within:border-primary-500/50 transition-all"
         >
           <input
             type="text"
