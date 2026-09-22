@@ -11,6 +11,8 @@ import { BottomNav } from './components/BottomNav';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { PageTransition } from './components/PageTransition';
+import { useOrientation } from './hooks/useOrientation';
+import { LandscapeClockScreen } from './components/LandscapeClockScreen';
 
 // Routes that show the bottom navigation
 const NAV_ROUTES = ['/', '/week', '/stats'];
@@ -18,6 +20,7 @@ const NAV_ROUTES = ['/', '/week', '/stats'];
 export default function App() {
   const { session, profile, isLoading } = useAuth();
   const location = useLocation();
+  const isLandscape = useOrientation();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -69,6 +72,9 @@ export default function App() {
   // If user has a group, show main routes
   return (
     <>
+      <AnimatePresence>
+        {isLandscape && <LandscapeClockScreen />}
+      </AnimatePresence>
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<PageTransition><MainScheduleScreen /></PageTransition>} />
