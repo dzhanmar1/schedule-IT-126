@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, MapPin, X, Maximize2, PartyPopper } from 'lucide-react';
+import { Clock, MapPin, X, Maximize2, Sparkles, Calendar } from 'lucide-react';
 import { useCurrentTime } from '../hooks/useCurrentTime';
 import { useSchedule } from '../hooks/useSchedule';
-import { useLanguage, DAYS_ORDER, JS_DAY_TO_INDEX } from '../i18n';
+import { useLanguage, DAY_KEYS_ORDERED, JS_DAY_TO_INDEX } from '../i18n';
 import { getClassStatus, getCurrentWeekParity } from '../utils/time';
 import { format } from 'date-fns';
 import { stringToColor } from '../utils/colors';
@@ -86,116 +86,158 @@ export function LandscapeClockScreen() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="fixed inset-0 z-[100] bg-black text-white flex overflow-hidden font-sans"
+      className="fixed inset-0 z-[100] bg-[#020817] text-white flex overflow-hidden font-sans"
     >
-      {/* Background glow based on current state */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className={cn(
-          "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120vw] h-[120vh] opacity-20 blur-[100px] rounded-full transition-colors duration-1000",
-          currentLesson ? "bg-primary-500" : "bg-blue-900"
-        )} />
+      {/* Dynamic Background Glow */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none flex items-center justify-center">
+        <motion.div 
+          layout
+          className={cn(
+            "absolute w-[120vw] h-[120vh] opacity-30 blur-[120px] rounded-[100%] mix-blend-screen transition-colors duration-1000",
+            currentLesson ? "bg-primary-600/40" : "bg-blue-900/30"
+          )} 
+        />
+        <div className="absolute inset-0 bg-gradient-to-tr from-black/80 via-transparent to-black/20" />
       </div>
 
       {/* Main Clock Area */}
       <div className={cn(
-        "relative z-10 flex flex-col justify-center h-full p-8 transition-all duration-500",
-        sidebarOpen ? "w-2/3" : "w-full items-center"
+        "relative z-10 flex flex-col justify-center h-full px-12 transition-all duration-700 ease-in-out",
+        sidebarOpen ? "w-2/3" : "w-full items-center text-center"
       )}>
         {/* Date */}
-        <motion.div layout className="text-white/60 text-xl font-medium mb-2 tracking-wide uppercase">
-          {t(`days.${DAYS_ORDER[daysOrderIndex || 0]}`)}, {format(currentTime, 'dd.MM')}
+        <motion.div layout className="flex items-center gap-3 text-primary-200/80 text-xl font-medium mb-4 tracking-widest uppercase">
+          <Calendar size={20} className="opacity-70" />
+          {t(`days.${DAY_KEYS_ORDERED[daysOrderIndex || 0]}`)}, {format(currentTime, 'dd.MM')}
         </motion.div>
 
         {/* Big Clock */}
-        <motion.div layout className="flex items-baseline gap-2 mb-8">
-          <span className="text-[120px] leading-none font-black tracking-tighter tabular-nums drop-shadow-2xl">
+        <motion.div layout className={cn("flex items-end gap-3 mb-10", !sidebarOpen && "justify-center")}>
+          <span className="text-[140px] leading-[0.8] font-black tracking-tight tabular-nums drop-shadow-2xl text-white">
             {timeString}
           </span>
-          <span className="text-4xl font-bold text-primary-400 opacity-80 tabular-nums">
+          <span className="text-5xl font-bold text-primary-400 opacity-90 tabular-nums pb-2">
             {secondsString}
           </span>
         </motion.div>
 
-        {/* Current Status */}
-        <motion.div layout className="max-w-xl">
-          {currentLesson ? (
-            <div className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
-              <div className="absolute bottom-0 left-0 h-1.5 w-full bg-white/5">
-                <motion.div
-                  className="h-full bg-gradient-to-r from-primary-400 to-blue-400"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${currentLesson.progress}%` }}
-                  transition={{ duration: 1, ease: 'easeOut' }}
-                />
-              </div>
+        {/* Current Status Widget */}
+        <motion.div layout className="max-w-xl w-full">
+          <AnimatePresence mode="wait">
+            {currentLesson ? (
+              <motion.div 
+                key="current"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-8 shadow-2xl relative overflow-hidden group hover:bg-white/10 transition-colors"
+              >
+                <div className="absolute bottom-0 left-0 h-1.5 w-full bg-black/20">
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-primary-500 to-cyan-400"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${currentLesson.progress}%` }}
+                    transition={{ duration: 1, ease: 'easeOut' }}
+                  />
+                </div>
 
-              <div className="flex justify-between items-start mb-4">
-                <div className="bg-primary-500/20 text-primary-300 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border border-primary-500/30">
-                  {t('ui.lessonNow')}
-                </div>
-                <div className="text-right">
-                  <div className="text-3xl font-black text-white">{currentLesson.minutesLeft} {t('ui.statsMinutes')}</div>
-                  <div className="text-white/50 text-xs font-medium uppercase">{t('ui.statsMinutes')} {t('ui.statsLeft').toLowerCase()}</div>
-                </div>
-              </div>
-
-              <h2 className="text-3xl font-bold mb-3 leading-tight text-white">{currentLesson.subject}</h2>
-              
-              <div className="flex items-center gap-6 text-white/70">
-                <div className="flex items-center gap-2">
-                  <MapPin size={18} className="text-primary-400" />
-                  <span className="font-medium text-lg">{currentLesson.room}</span>
-                </div>
-                {currentLesson.teacher && (
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-inner"
-                      style={{ backgroundColor: stringToColor(currentLesson.teacher) }}
-                    >
-                      {currentLesson.teacher.substring(0, 2)}
-                    </div>
-                    <span className="font-medium text-lg">{currentLesson.teacher}</span>
+                <div className="flex justify-between items-start mb-6">
+                  <div className="bg-primary-500/20 text-primary-300 px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-widest border border-primary-500/30 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-primary-400 animate-pulse" />
+                    {t('ui.lessonNow')}
                   </div>
+                  <div className="text-right">
+                    <div className="text-4xl font-black text-white leading-none tracking-tight">
+                      {currentLesson.minutesLeft} <span className="text-2xl text-white/50">{t('ui.statsMinutes')}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <h2 className="text-3xl font-bold mb-4 leading-tight text-white/95 line-clamp-2">
+                  {currentLesson.subject}
+                </h2>
+                
+                <div className="flex items-center gap-8 text-white/70">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 bg-white/5 rounded-xl">
+                      <MapPin size={20} className="text-cyan-400" />
+                    </div>
+                    <span className="font-semibold text-lg">{currentLesson.room}</span>
+                  </div>
+                  {currentLesson.teacher && (
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-inner border border-white/10"
+                        style={{ backgroundColor: stringToColor(currentLesson.teacher) }}
+                      >
+                        {currentLesson.teacher.substring(0, 2)}
+                      </div>
+                      <span className="font-semibold text-lg line-clamp-1">{currentLesson.teacher}</span>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            ) : nextLesson ? (
+              <motion.div 
+                key="next"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="bg-white/[0.03] backdrop-blur-xl border border-white/5 rounded-[2rem] p-8"
+              >
+                <div className="flex items-center gap-3 text-white/50 mb-4 uppercase tracking-widest text-sm font-bold">
+                  <Clock size={18} />
+                  <span>{t('ui.break')}</span>
+                </div>
+                <div className="text-4xl font-black mb-3 tracking-tight">
+                  До пары <span className="text-cyan-400">{minutesToNext} {t('ui.statsMinutes')}</span>
+                </div>
+                <div className="text-xl text-white/60 font-medium flex items-center gap-3">
+                  Далее: <span className="text-white/90">{nextLesson.subject}</span>
+                  <span className="bg-white/10 px-3 py-1 rounded-lg text-sm">{nextLesson.time.split('-')[0]}</span>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div 
+                key="none"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className={cn(
+                  "bg-gradient-to-br from-white/[0.05] to-transparent backdrop-blur-xl border border-white/10 rounded-[2rem] p-10 flex flex-col items-center justify-center gap-4 text-center",
+                  !sidebarOpen && "mx-auto"
                 )}
-              </div>
-            </div>
-          ) : nextLesson ? (
-            <div className="bg-white/5 backdrop-blur-md border border-white/5 rounded-3xl p-6">
-              <div className="flex items-center gap-3 text-white/60 mb-2">
-                <Clock size={20} />
-                <span className="text-lg font-medium">{t('ui.break')}</span>
-              </div>
-              <div className="text-4xl font-bold mb-2">
-                До пары {minutesToNext} {t('ui.statsMinutes')}
-              </div>
-              <div className="text-xl text-primary-300 font-medium">
-                Далее: {nextLesson.subject} в {nextLesson.time.split('-')[0]}
-              </div>
-            </div>
-          ) : (
-            <div className="bg-white/5 backdrop-blur-md border border-white/5 rounded-3xl p-6 text-center">
-              <PartyPopper size={40} className="text-primary-400 mx-auto mb-4" />
-              <div className="text-2xl font-bold">{t('ui.noLessonsToday')}</div>
-            </div>
-          )}
+              >
+                <div className="w-16 h-16 rounded-full bg-primary-500/20 flex items-center justify-center mb-2 shadow-[0_0_30px_rgba(59,130,246,0.3)]">
+                  <Sparkles size={32} className="text-primary-400" />
+                </div>
+                <div className="text-3xl font-bold tracking-tight">{t('ui.noLessonsToday')}</div>
+                <div className="text-white/50 font-medium">Отдыхай и набирайся сил!</div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       </div>
 
-      {/* Sidebar Toggle Button */}
-      <button
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="absolute top-6 right-6 z-50 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md transition-colors"
-      >
-        {sidebarOpen ? <X size={24} /> : <Clock size={24} />}
-      </button>
-
-      {/* Fullscreen Toggle Button */}
-      <button
-        onClick={toggleFullscreen}
-        className="absolute bottom-6 right-6 z-50 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md transition-colors"
-      >
-        <Maximize2 size={20} />
-      </button>
+      {/* Action Buttons Container (Bottom Right) */}
+      <div className="absolute bottom-8 right-8 z-50 flex gap-4">
+        <button
+          onClick={toggleFullscreen}
+          className="w-14 h-14 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/15 border border-white/10 backdrop-blur-xl transition-all hover:scale-105 active:scale-95"
+        >
+          <Maximize2 size={24} className="text-white/70" />
+        </button>
+        {!sidebarOpen && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onClick={() => setSidebarOpen(true)}
+            className="w-14 h-14 flex items-center justify-center rounded-full bg-primary-500 hover:bg-primary-400 text-white shadow-[0_0_30px_rgba(59,130,246,0.5)] transition-all hover:scale-105 active:scale-95"
+          >
+            <Clock size={24} />
+          </motion.button>
+        )}
+      </div>
 
       {/* Sidebar - Upcoming Lessons */}
       <AnimatePresence>
@@ -204,11 +246,22 @@ export function LandscapeClockScreen() {
             initial={{ x: '100%', opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: '100%', opacity: 0 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="absolute right-0 top-0 bottom-0 w-1/3 bg-black/40 backdrop-blur-2xl border-l border-white/10 p-6 flex flex-col z-20"
+            transition={{ type: 'spring', damping: 30, stiffness: 200 }}
+            className="absolute right-0 top-0 bottom-0 w-1/3 bg-black/40 backdrop-blur-3xl border-l border-white/5 flex flex-col z-40 shadow-2xl"
           >
-            <h3 className="text-xl font-bold mb-6 text-white/90 pt-4">Расписание на сегодня</h3>
-            <div className="flex-1 overflow-y-auto hide-scrollbar flex flex-col gap-3 pb-20">
+            {/* Sidebar Header */}
+            <div className="flex items-center justify-between p-8 pb-4">
+              <h3 className="text-2xl font-bold text-white/90">Расписание</h3>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-colors"
+              >
+                <X size={20} className="text-white/70" />
+              </button>
+            </div>
+
+            {/* Sidebar Content */}
+            <div className="flex-1 overflow-y-auto hide-scrollbar px-8 pb-32 flex flex-col gap-4">
               {todayLessons.map((lesson, idx) => {
                 const status = getClassStatus(lesson.time, currentTime);
                 const isPast = status.status === 'past';
@@ -218,28 +271,38 @@ export function LandscapeClockScreen() {
                   <div 
                     key={idx}
                     className={cn(
-                      "p-4 rounded-2xl border transition-all",
+                      "p-5 rounded-2xl border transition-all duration-300 relative overflow-hidden",
                       isCurrent 
-                        ? "bg-primary-500/20 border-primary-500/50" 
+                        ? "bg-primary-500/10 border-primary-500/30 shadow-[0_0_20px_rgba(59,130,246,0.1)]" 
                         : isPast
-                          ? "bg-white/5 border-white/5 opacity-50"
-                          : "bg-white/10 border-white/10"
+                          ? "bg-transparent border-white/5 opacity-40 grayscale"
+                          : "bg-white/[0.02] border-white/5 hover:bg-white/[0.04]"
                     )}
                   >
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="text-primary-300 font-bold font-mono">{lesson.time}</div>
-                      {isCurrent && <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />}
+                    {isCurrent && (
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
+                    )}
+                    
+                    <div className="flex justify-between items-start mb-3">
+                      <div className={cn("font-bold font-mono tracking-tight", isCurrent ? "text-primary-300" : "text-white/60")}>
+                        {lesson.time}
+                      </div>
+                      {isCurrent && <div className="text-[10px] font-bold uppercase tracking-widest text-primary-400 bg-primary-500/20 px-2 py-0.5 rounded-full">Live</div>}
                     </div>
-                    <div className="font-bold text-white mb-1 line-clamp-2">{lesson.subject}</div>
-                    <div className="text-white/60 text-sm flex items-center gap-1">
-                      <MapPin size={12} /> {lesson.room}
+                    <div className={cn("font-bold text-lg mb-2 line-clamp-2 leading-snug", isCurrent ? "text-white" : "text-white/80")}>
+                      {lesson.subject}
+                    </div>
+                    <div className="text-white/50 text-sm flex items-center gap-1.5 font-medium">
+                      <MapPin size={14} /> {lesson.room}
                     </div>
                   </div>
                 );
               })}
+              
               {todayLessons.length === 0 && (
-                <div className="text-center text-white/50 mt-10">
-                  Пар нет
+                <div className="text-center text-white/40 mt-12 flex flex-col items-center gap-3">
+                  <Sparkles size={32} className="opacity-20" />
+                  <span>На сегодня пар нет</span>
                 </div>
               )}
             </div>
