@@ -8,7 +8,13 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
       registerType: 'autoUpdate',
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,json,woff,woff2}'],
+      },
       manifest: {
         name: 'Сабақ кестесі — IT-126/40',
         short_name: 'Кесте',
@@ -35,27 +41,6 @@ export default defineConfig({
             purpose: 'maskable',
           },
         ],
-      },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,json,woff,woff2}'],
-        runtimeCaching: [
-          {
-            // Supabase API: always try network first, fallback to cache when offline
-            urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'supabase-api-cache',
-              networkTimeoutSeconds: 5,
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 5 // Cache for 5 minutes (offline fallback only)
-              },
-              cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
-          }
-        ]
       },
     }),
   ],
