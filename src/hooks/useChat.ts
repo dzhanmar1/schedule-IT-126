@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
-import type { ChatMessage } from '../types/chat';
+import type { ChatMessage, Reaction } from '../types/chat';
 import { useAuth } from '../contexts/AuthContext';
 
 export function useChat(roomId: string | null) {
@@ -39,7 +39,7 @@ export function useChat(roomId: string | null) {
     }
   }, [roomId]);
 
-  // Subscribe to new messages
+  // Subscribe to new messages, updates, and deletes
   useEffect(() => {
     if (!roomId) return;
     
@@ -49,30 +49,37 @@ export function useChat(roomId: string | null) {
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*',
           schema: 'public',
           table: 'chat_messages',
           filter: `room_id=eq.${roomId}`
         },
         async (payload) => {
-          const newMessage = payload.new as ChatMessage;
-          // Fetch the profile for the new message to get name and avatar
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('full_name, avatar_color')
-            .eq('id', newMessage.user_id)
-            .single();
+          if (payload.eventType === 'INSERT') {
+            const newMessage = payload.new as ChatMessage;
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('full_name, avatar_color')
+              .eq('id', newMessage.user_id)
+              .single();
 
-          const messageWithProfile = {
-            ...newMessage,
-            profiles: profileData || undefined
-          };
+            const messageWithProfile = {
+              ...newMessage,
+              profiles: profileData || undefined
+            };
 
-          setMessages(prev => {
-            // Avoid duplicates if we sent it ourselves
-            if (prev.some(m => m.id === messageWithProfile.id)) return prev;
-            return [...prev, messageWithProfile];
-          });
+            setMessages(prev => {
+              if (prev.some(m => m.id === messageWithProfile.id)) return prev;
+              return [...prev, messageWithProfile];
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedMessage = payload.new as ChatMessage;
+            setMessages(prev => prev.map(m => 
+              m.id === updatedMessage.id ? { ...m, ...updatedMessage, profiles: m.profiles } : m
+            ));
+          } else if (payload.eventType === 'DELETE') {
+            setMessages(prev => prev.filter(m => m.id !== payload.old.id));
+          }
         }
       )
       .subscribe();
@@ -86,13 +93,13 @@ export function useChat(roomId: string | null) {
     if (!roomId || !user || !content.trim()) return;
 
     try {
-      // Optimistic update can be added here, but for simplicity we rely on the DB insert
       const { error: sendError } = await supabase
         .from('chat_messages')
         .insert({
           room_id: roomId,
           user_id: user.id,
-          content: content.trim()
+          content: content.trim(),
+          reactions: []
         });
 
       if (sendError) throw sendError;
@@ -102,11 +109,61 @@ export function useChat(roomId: string | null) {
     }
   };
 
+  const deleteMessage = async (messageId: string) => {
+    if (!user) return;
+    try {
+      const { error: delError } = await supabase
+        .from('chat_messages')
+        .delete()
+        .eq('id', messageId)
+        .eq('user_id', user.id); // Ensure only owner can delete
+        
+      if (delError) throw delError;
+    } catch (err: any) {
+      console.error('Error deleting message:', err);
+      throw err;
+    }
+  };
+
+  const toggleReaction = async (messageId: string, emoji: string) => {
+    if (!user) return;
+    try {
+      const msg = messages.find(m => m.id === messageId);
+      if (!msg) return;
+
+      const currentReactions: Reaction[] = msg.reactions || [];
+      const existingReactionIndex = currentReactions.findIndex(r => r.user_id === user.id && r.emoji === emoji);
+      
+      let newReactions = [...currentReactions];
+      
+      if (existingReactionIndex >= 0) {
+        newReactions.splice(existingReactionIndex, 1);
+      } else {
+        newReactions.push({ user_id: user.id, emoji });
+      }
+
+      // Optimistically update
+      setMessages(prev => prev.map(m => m.id === messageId ? { ...m, reactions: newReactions } : m));
+
+      const { error: updateError } = await supabase
+        .from('chat_messages')
+        .update({ reactions: newReactions })
+        .eq('id', messageId);
+
+      if (updateError) throw updateError;
+    } catch (err: any) {
+      console.error('Error toggling reaction:', err);
+      throw err;
+    }
+  };
+
   return {
     messages,
     loading,
     error,
     sendMessage,
+    deleteMessage,
+    toggleReaction,
     loadMessages
   };
 }

@@ -17,7 +17,6 @@ export function ProfileScreen() {
   const [fullName, setFullName] = useState(profile?.full_name || '');
   const [bio, setBio] = useState(profile?.bio || '');
   const [avatarColor, setAvatarColor] = useState(profile?.avatar_color || stringToColor(user?.id || ''));
-  const [subgroup, setSubgroup] = useState<string>(profile?.subgroup?.toString() || '');
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +30,6 @@ export function ProfileScreen() {
           full_name: fullName,
           bio,
           avatar_color: avatarColor,
-          subgroup: subgroup ? parseInt(subgroup) : null,
         })
         .eq('id', user.id);
 
@@ -132,21 +130,7 @@ export function ProfileScreen() {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">
-                Подгруппа
-              </label>
-              <select
-                value={subgroup}
-                onChange={(e) => setSubgroup(e.target.value)}
-                className="w-full px-4 py-3 bg-bg-main-light dark:bg-bg-main-dark border border-border-light dark:border-border-dark rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/50 text-text-primary-light dark:text-text-primary-dark"
-              >
-                <option value="">Без подгруппы</option>
-                <option value="1">1 подгруппа</option>
-                <option value="2">2 подгруппа</option>
-                <option value="3">3 подгруппа</option>
-              </select>
-            </div>
+
             
             <div>
               <label className="block text-sm font-bold text-text-secondary-light dark:text-text-secondary-dark mb-1">

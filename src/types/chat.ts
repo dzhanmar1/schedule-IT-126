@@ -6,12 +6,18 @@ export interface ChatRoom {
   created_at: string;
 }
 
+export interface Reaction {
+  user_id: string;
+  emoji: string;
+}
+
 export interface ChatMessage {
   id: string;
   room_id: string;
   user_id: string;
   content: string;
   created_at: string;
+  reactions?: Reaction[];
   profiles?: {
     full_name: string | null;
     avatar_color: string | null;
